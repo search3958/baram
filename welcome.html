@@ -1,11 +1,50 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Baram Code</title>
+
+  <title>Baram Code | ログイン不要のブラウザ完結型コードエディタ</title>
+  <meta name="description"
+    content="CodePenより手軽なプロトタイピング。Baram Codeは、インストールもログインも不要なブラウザ完結型のWeb開発プレイグラウンド。すべてをローカルに保存し、爆速でHTML/CSS/JSをテストできます。" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Baram Code - 爆速でアイデアを形にする、軽量コードエディタ" />
+  <meta property="og:description" content="ブラウザを開いて、書くだけ。データは自分のブラウザに保存される、最もミニマルな開発環境。" />
+  <meta property="og:url" content="https://search3958.github.io/baram/welcome" />
+  <meta property="og:image" content="https://search3958.github.io/baram/welcome/og-image.png" />
+  <link rel="canonical" href="https://search3958.github.io/baram/welcome" />
+
+  <meta name="keywords" content="オンラインエディタ, CodePen 代替, フロントエンド 練習, HTML プレイグラウンド, ログイン不要 エディタ, Baram Code" />
+
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Baram Code",
+  "url": "https://search3958.github.io/baram/welcome",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Web",
+  "description": "CodePenスタイルの軽量プレイグラウンド。ログイン不要で即座にコードを書き始められ、プロジェクトをZIP形式でダウンロード可能。",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "featureList": [
+    "No installation required",
+    "Local browser storage",
+    "Real-time live preview",
+    "ZIP export support",
+    "Multi-language (JA, EN, KO, ZH)"
+  ]
+}
+</script>
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
   <style>
-    @import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap");
+    @import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;600&family=Noto+Sans+JP:wght@400;500;600&family=Noto+Sans+KR:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;600&display=swap");
 
     :root {
       color-scheme: light dark;
@@ -17,7 +56,7 @@
       --accent: #0b7a75;
       --accent-strong: #08645f;
       --muted: #746a5c;
-      --shadow: 0 28px 60px -42px rgba(22, 18, 9, 0.6);
+      --shadow: 0 16px 40px rgba(22, 18, 9, 0.1);
       --bg-gradient: radial-gradient(circle at top left, #fff8ee 0%, #f6f0e8 45%, #efe4d4 100%);
       --button-secondary-bg: #f0e6d6;
       --button-secondary-text: #2a231c;
@@ -57,9 +96,11 @@
     body {
       margin: 0;
       color: var(--bg-ink);
-      font-family: "Space Grotesk", "Noto Sans JP", sans-serif;
+      font-family: "Space Grotesk", "Noto Sans JP", "Noto Sans KR", "Noto Sans SC", sans-serif;
       background: var(--bg-gradient);
       min-height: 100vh;
+      display: flex;
+      align-items: center;
     }
 
     body::before,
@@ -78,9 +119,6 @@
       opacity: 0.8;
     }
 
-    body::after {
-      backdrop-filter: blur(40px);
-    }
 
     button {
       border: none;
@@ -241,7 +279,7 @@
       gap: 16px;
       padding: 6px 2px 12px;
       max-height: calc(100vh - 220px);
-      overflow-y: auto;
+      overflow: visible;
     }
 
     .project-card {
@@ -254,6 +292,7 @@
       flex-direction: column;
       gap: 10px;
       transition: transform 0.2s ease, border 0.2s ease, background 0.2s ease;
+      overflow: visible;
     }
 
     .project-card:hover {
@@ -310,25 +349,26 @@
     }
   </style>
 </head>
+
 <body>
   <main class="landing">
     <section class="intro">
       <div class="brand-row">
         <div class="brand-title">Baram Code</div>
-        <div class="brand-chip">Local Playground</div>
+        <div class="brand-chip" data-i18n="localPlayground"></div>
       </div>
       <h1 class="hero-greeting" id="greeting"></h1>
-      <p class="hero-subtitle">Craft, test, and refine small ideas fast. Everything stays in your browser.</p>
+      <p class="hero-subtitle" data-i18n="subtitle"></p>
       <div class="hero-actions">
-        <button id="newProjectBtn">New Project</button>
+        <button id="newProjectBtn" data-i18n="newProject"></button>
       </div>
       <div class="metrics">
         <div class="metric">
-          <span>Projects</span>
+          <span data-i18n="projects"></span>
           <strong id="projectCount">0</strong>
         </div>
         <div class="metric">
-          <span>Last Update</span>
+          <span data-i18n="lastUpdate"></span>
           <strong id="projectUpdated">—</strong>
         </div>
       </div>
@@ -337,7 +377,7 @@
     <section class="projects">
       <div class="section-head">
         <div>
-          <h2>Projects</h2>
+          <h2 data-i18n="projects"></h2>
           <div class="section-meta" id="projectSummary">0 projects</div>
         </div>
       </div>
@@ -346,6 +386,217 @@
   </main>
 
   <script>
+    // Multilingual translations
+    const translations = {
+      ja: {
+        localPlayground: "Local Playground",
+        subtitle: "小さなアイデアを素早く作成、テスト、改良。すべてがブラウザ内に保存されます。",
+        newProject: "新しいプロジェクト",
+        projects: "プロジェクト",
+        lastUpdate: "最終更新",
+        noProjects: "プロジェクトがありません。最初のプロジェクトを作成しましょう。",
+        projectsCount: "{count} プロジェクト",
+        updated: "更新日時",
+        open: "開く",
+        deleteConfirm: "{name} を削除しますか？",
+        defaultProjectName: "Baram Live Preview",
+        greetings: [
+          "こんにちは！",
+          "さあ始めましょう。今日のアイデアは？",
+          "準備OK？新しいプロジェクトを作りましょう。",
+          "やる気満々ですね。何を作りますか？",
+          "今日はどんなUIにしますか？",
+          "こんにちは！コードを書く時間です。",
+          "次の作品、ここから始まります。",
+          "思いついたらすぐ試しましょう。",
+          "小さな実験でも大歓迎です。",
+          "新しいレイアウト、試してみませんか？",
+          "集中タイムです。始めますか？",
+          "デザインの冒険へ。",
+          "一行目から始めましょう。",
+          "今日は何を磨きますか？",
+          "こんにちは！まずは試作から。",
+          "ここはあなたのワークショップ。",
+          "新しい動き、試してみよう。",
+          "アイデアの火花、今すぐ形に。",
+          "今の気分は？ミニプロジェクトでもOK。",
+          "今日のテーマは何ですか？",
+          "集中する準備はできましたか？",
+          "さあ、試し書きからいきましょう。",
+          "こんにちは！一緒に作りましょう。",
+          "コードとデザインの時間です。",
+          "ひらめいたらすぐ実装。",
+          "整えて、動かして、完成へ。",
+          "今日はどんな実験を？",
+          "Baram Codeへようこそ。",
+        ]
+      },
+      en: {
+        localPlayground: "Local Playground",
+        subtitle: "Craft, test, and refine small ideas fast. Everything stays in your browser.",
+        newProject: "New Project",
+        projects: "Projects",
+        lastUpdate: "Last Update",
+        noProjects: "No projects yet. Create your first project.",
+        projectsCount: "{count} projects",
+        updated: "Updated",
+        open: "Open",
+        deleteConfirm: "Delete {name}?",
+        defaultProjectName: "Baram Live Preview",
+        greetings: [
+          "Hello!",
+          "Let's get started. What's your idea today?",
+          "Ready? Let's create a new project.",
+          "You look motivated. What will you build?",
+          "What kind of UI will you make today?",
+          "Hello! Time to write some code.",
+          "Your next creation starts here.",
+          "Got an idea? Let's try it now.",
+          "Small experiments are welcome too.",
+          "Want to try a new layout?",
+          "Focus time. Ready to start?",
+          "Adventure in design awaits.",
+          "Let's start with the first line.",
+          "What will you polish today?",
+          "Hello! Let's start with a prototype.",
+          "This is your workshop.",
+          "Let's try some new interactions.",
+          "Spark of an idea? Shape it now.",
+          "What's your mood? Mini projects are fine.",
+          "What's today's theme?",
+          "Ready to concentrate?",
+          "Let's start with a quick sketch.",
+          "Hello! Let's build together.",
+          "Time for code and design.",
+          "Got inspiration? Implement it now.",
+          "Refine, animate, complete.",
+          "What experiment today?",
+          "Welcome to Baram Code.",
+        ]
+      },
+      ko: {
+        localPlayground: "로컬 플레이그라운드",
+        subtitle: "작은 아이디어를 빠르게 제작, 테스트, 개선하세요. 모든 것이 브라우저에 저장됩니다.",
+        newProject: "새 프로젝트",
+        projects: "프로젝트",
+        lastUpdate: "최근 업데이트",
+        noProjects: "프로젝트가 없습니다. 첫 번째 프로젝트를 만들어보세요.",
+        projectsCount: "{count}개의 프로젝트",
+        updated: "업데이트",
+        open: "열기",
+        deleteConfirm: "{name}을(를) 삭제하시겠습니까?",
+        defaultProjectName: "Baram Live Preview",
+        greetings: [
+          "안녕하세요!",
+          "시작해볼까요. 오늘의 아이디어는?",
+          "준비되셨나요? 새 프로젝트를 만들어봅시다.",
+          "의욕이 넘치시네요. 무엇을 만들까요?",
+          "오늘은 어떤 UI를 만드시겠어요?",
+          "안녕하세요! 코드를 작성할 시간입니다.",
+          "다음 작품이 여기서 시작됩니다.",
+          "아이디어가 떠올랐나요? 바로 시도해봅시다.",
+          "작은 실험도 환영합니다.",
+          "새로운 레이아웃을 시도해보시겠어요?",
+          "집중 타임입니다. 시작할까요?",
+          "디자인의 모험으로.",
+          "첫 번째 줄부터 시작해봅시다.",
+          "오늘은 무엇을 다듬을까요?",
+          "안녕하세요! 프로토타입부터 시작해봅시다.",
+          "여기는 당신의 작업실입니다.",
+          "새로운 인터랙션을 시도해봅시다.",
+          "아이디어의 불꽃, 지금 바로 형태로.",
+          "기분이 어떠세요? 미니 프로젝트도 좋습니다.",
+          "오늘의 테마는 무엇인가요?",
+          "집중할 준비가 되셨나요?",
+          "빠른 스케치부터 시작해봅시다.",
+          "안녕하세요! 함께 만들어봅시다.",
+          "코드와 디자인의 시간입니다.",
+          "영감이 떠올랐나요? 지금 바로 구현하세요.",
+          "다듬고, 움직이고, 완성하세요.",
+          "오늘은 어떤 실험을?",
+          "Baram Code에 오신 것을 환영합니다.",
+        ]
+      },
+      zh: {
+        localPlayground: "本地实验场",
+        subtitle: "快速创建、测试和优化小创意。所有内容都保存在浏览器中。",
+        newProject: "新项目",
+        projects: "项目",
+        lastUpdate: "最近更新",
+        noProjects: "还没有项目。创建您的第一个项目。",
+        projectsCount: "{count} 个项目",
+        updated: "更新时间",
+        open: "打开",
+        deleteConfirm: "删除 {name}？",
+        defaultProjectName: "Baram Live Preview",
+        greetings: [
+          "你好！",
+          "让我们开始吧。今天的想法是什么？",
+          "准备好了吗？让我们创建一个新项目。",
+          "您看起来很有动力。要做什么？",
+          "今天要做什么样的UI？",
+          "你好！该写代码了。",
+          "您的下一个作品从这里开始。",
+          "有想法了吗？现在就试试。",
+          "小实验也很欢迎。",
+          "想尝试新布局吗？",
+          "专注时间。准备开始了吗？",
+          "设计冒险等着你。",
+          "让我们从第一行开始。",
+          "今天要完善什么？",
+          "你好！让我们从原型开始。",
+          "这是您的工作室。",
+          "让我们尝试一些新的交互。",
+          "灵感火花，现在就塑造它。",
+          "心情如何？迷你项目也可以。",
+          "今天的主题是什么？",
+          "准备好集中注意力了吗？",
+          "让我们从快速草图开始。",
+          "你好！让我们一起建造。",
+          "代码和设计的时间到了。",
+          "有灵感了吗？现在就实现它。",
+          "完善、动画、完成。",
+          "今天做什么实验？",
+          "欢迎来到 Baram Code。",
+        ]
+      }
+    };
+
+    // Detect browser language
+    function detectLanguage() {
+      const browserLang = navigator.language || navigator.userLanguage;
+      const langCode = browserLang.toLowerCase();
+
+      if (langCode.startsWith('ja')) return 'ja';
+      if (langCode.startsWith('ko')) return 'ko';
+      if (langCode.startsWith('zh')) return 'zh';
+      return 'en'; // default to English
+    }
+
+    const currentLang = detectLanguage();
+    const i18n = translations[currentLang];
+
+    // Apply translations
+    function applyTranslations() {
+      document.querySelectorAll('[data-i18n]').forEach(element => {
+        const key = element.getAttribute('data-i18n');
+        if (i18n[key]) {
+          element.textContent = i18n[key];
+        }
+      });
+
+      // Update HTML lang attribute
+      document.documentElement.lang = currentLang;
+    }
+
+    function t(key, replacements = {}) {
+      let text = i18n[key] || key;
+      Object.keys(replacements).forEach(k => {
+        text = text.replace(`{${k}}`, replacements[k]);
+      });
+      return text;
+    }
+
     const defaultContent = {
       html: `\n<div class="card">\n  <h1>Baram Playground</h1>\n  <p>Edit HTML, CSS, and JS. CSS updates can hot reload without resetting JS.</p>\n  <button class="pulse">Try me</button>\n  <div class="count">Clicks: <span id="count">0</span></div>\n</div>\n`,
       css: `\n* {\n  box-sizing: border-box;\n}\n\nbody {\n  margin: 0;\n  font-family: "Space Grotesk", sans-serif;\n  background: radial-gradient(circle at top, #fff, #f3f1ec 60%);\n  color: #1d1b16;\n  min-height: 100vh;\n  display: grid;\n  place-items: center;\n  padding: 32px;\n}\n\n.card {\n  background: #ffffff;\n  border: 1px solid #e0d7c9;\n  border-radius: 20px;\n  padding: 28px 32px;\n  width: min(520px, 92vw);\n  box-shadow: 0 24px 40px -28px rgba(30, 24, 15, 0.5);\n}\n\n.card h1 {\n  margin-top: 0;\n  font-size: 2.1rem;\n}\n\n.card p {\n  color: #5a5145;\n}\n\n.pulse {\n  margin-top: 16px;\n  border: none;\n  border-radius: 999px;\n  padding: 12px 18px;\n  font-weight: 600;\n  cursor: pointer;\n  background: #0b7a75;\n  color: #fff;\n  box-shadow: 0 16px 30px -20px rgba(11, 122, 117, 0.8);\n  transition: transform 0.2s ease;\n}\n\n.pulse:hover {\n  transform: translateY(-2px);\n}\n\n.count {\n  margin-top: 18px;\n  font-weight: 600;\n}\n`,
@@ -354,37 +605,6 @@
 
     const DB_KEY = "baram-projects-v1";
     const LEGACY_KEY = "baram-playground";
-
-    const greetings = [
-      "こんにちは！お仕事中ですか？開始しましょう！今日は何をしますか？",
-      "さあ始めましょう。今日のアイデアは？",
-      "準備OK？新しいプロジェクトを作りましょう。",
-      "やる気満々ですね。何を作りますか？",
-      "今日はどんなUIにしますか？",
-      "こんにちは！コードを書く時間です。",
-      "次の作品、ここから始まります。",
-      "思いついたらすぐ試しましょう。",
-      "小さな実験でも大歓迎です。",
-      "新しいレイアウト、試してみませんか？",
-      "集中タイムです。始めますか？",
-      "デザインの冒険へ。",
-      "一行目から始めましょう。",
-      "今日は何を磨きますか？",
-      "こんにちは！まずは試作から。",
-      "ここはあなたのワークショップ。",
-      "新しい動き、試してみよう。",
-      "アイデアの火花、今すぐ形に。",
-      "今の気分は？ミニプロジェクトでもOK。",
-      "今日のテーマは何ですか？",
-      "集中する準備はできましたか？",
-      "さあ、試し書きからいきましょう。",
-      "こんにちは！一緒に作りましょう。",
-      "コードとデザインの時間です。",
-      "ひらめいたらすぐ実装。",
-      "整えて、動かして、完成へ。",
-      "今日はどんな実験を？",
-      "Baram Codeへようこそ。",
-    ];
 
     function loadDb() {
       try {
@@ -414,7 +634,7 @@
 
       return {
         id: createId(),
-        name: name || "Baram Live Preview",
+        name: name || t('defaultProjectName'),
         createdAt: now,
         updatedAt: now,
         files: {
@@ -446,7 +666,7 @@
       if (!legacyRaw) return db;
       try {
         const legacy = JSON.parse(legacyRaw);
-        const project = createProject("Baram Live Preview");
+        const project = createProject(t('defaultProjectName'));
         project.files.html[0].content = legacy.html || defaultContent.html;
         project.files.css[0].content = legacy.css || defaultContent.css;
         project.files.js[0].content = legacy.js || defaultContent.js;
@@ -594,7 +814,11 @@
     const projectUpdatedEl = document.getElementById("projectUpdated");
     const projectSummaryEl = document.getElementById("projectSummary");
 
+    // Apply translations on load
+    applyTranslations();
+
     if (greetingEl) {
+      const greetings = i18n.greetings;
       const index = Math.floor(Math.random() * greetings.length);
       greetingEl.textContent = greetings[index];
     }
@@ -605,13 +829,15 @@
       if (!value) return "";
       const date = new Date(value);
       if (Number.isNaN(date.getTime())) return "";
-      return date.toLocaleString();
+      return date.toLocaleString(currentLang);
     }
 
     function updateSummary(projects) {
       if (projectCountEl) projectCountEl.textContent = String(projects.length);
       if (projectSummaryEl) {
-        projectSummaryEl.textContent = projects.length ? `${projects.length} projects` : "No projects yet";
+        projectSummaryEl.textContent = projects.length
+          ? t('projectsCount', { count: projects.length })
+          : t('noProjects');
       }
       const latest = projects
         .map((project) => project.updatedAt)
@@ -633,7 +859,7 @@
       if (!projects.length) {
         const empty = document.createElement("div");
         empty.className = "empty";
-        empty.textContent = "No projects yet. Create your first project.";
+        empty.textContent = t('noProjects');
         projectGrid.appendChild(empty);
         return;
       }
@@ -643,9 +869,9 @@
         card.className = "project-card";
 
         const nameInput = document.createElement("input");
-        nameInput.value = project.name || "Baram Live Preview";
+        nameInput.value = project.name || t('defaultProjectName');
         nameInput.addEventListener("input", () => {
-          project.name = nameInput.value.trim() || "Baram Live Preview";
+          project.name = nameInput.value.trim() || t('defaultProjectName');
           project.updatedAt = new Date().toISOString();
           db.projects[project.id] = project;
           saveDb(db);
@@ -654,13 +880,13 @@
 
         const meta = document.createElement("div");
         meta.className = "project-meta";
-        meta.textContent = `Updated: ${formatDate(project.updatedAt)}`;
+        meta.textContent = `${t('updated')}: ${formatDate(project.updatedAt)}`;
 
         const actions = document.createElement("div");
         actions.className = "project-actions";
 
         const openBtn = document.createElement("button");
-        openBtn.textContent = "Open";
+        openBtn.textContent = t('open');
         openBtn.addEventListener("click", () => {
           db.lastProjectId = project.id;
           saveDb(db);
@@ -669,14 +895,14 @@
 
         const downloadBtn = document.createElement("button");
         downloadBtn.className = "secondary";
-        downloadBtn.textContent = "Download Zip";
+        downloadBtn.innerHTML = `<span class="material-symbols-rounded">download</span>`;
         downloadBtn.addEventListener("click", () => downloadZip(project));
 
         const deleteBtn = document.createElement("button");
         deleteBtn.className = "ghost";
-        deleteBtn.textContent = "Delete";
+        deleteBtn.innerHTML = `<span class="material-symbols-rounded">delete_forever</span>`;
         deleteBtn.addEventListener("click", () => {
-          const ok = window.confirm(`Delete ${project.name || "this project"}?`);
+          const ok = window.confirm(t('deleteConfirm', { name: project.name || t('defaultProjectName') }));
           if (!ok) return;
           delete db.projects[project.id];
           saveDb(db);
@@ -695,7 +921,7 @@
     }
 
     newProjectBtn.addEventListener("click", () => {
-      const project = createProject("Baram Live Preview");
+      const project = createProject(t('defaultProjectName'));
       db.projects[project.id] = project;
       db.lastProjectId = project.id;
       saveDb(db);
@@ -705,4 +931,5 @@
     renderProjects();
   </script>
 </body>
+
 </html>

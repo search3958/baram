@@ -4,7 +4,30 @@
 <head>
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
-	<title>Baram Live Preview</title>
+	<title>Editor | Baram Code - 登録不要のWebプレビュー環境</title>
+
+	<meta name="description"
+		content="URLを開くだけで即座にコーディング開始。HTML/CSS/JSのリアルタイムプレビューに対応した、インストール・ログイン不要の軽量エディタです。作成したコードはローカルに自動保存されます。" />
+	<meta name="keywords" content="オンラインエディタ, リアルタイムプレビュー, フロントエンド開発, HTML 練習, ログイン不要, Web Playground, Baram Code" />
+
+	<meta property="og:type" content="article" />
+	<meta property="og:title" content="Baram Code Editor - 爆速Webプレイグラウンド" />
+	<meta property="og:description" content="環境構築は不要。ブラウザがあなたの開発スタジオになります。今すぐコードを書き始めましょう。" />
+	<meta property="og:url" content="https://search3958.github.io/baram/welcome" />
+	<meta property="og:image" content="https://search3958.github.io/baram/welcome/og-editor.png" />
+
+	<meta name="twitter:card" content="summary_large_image" />
+	<meta name="twitter:site" content="@your_twitter_id" />
+	<script>
+		if (window.location.search.includes('id=')) {
+			const meta = document.createElement('meta');
+			meta.name = 'robots';
+			meta.content = 'noindex, nofollow';
+			document.head.appendChild(meta);
+		}
+	</script>
+	<link rel="stylesheet"
+		href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
 	<style>
 		@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap");
 
@@ -301,6 +324,7 @@
 			gap: 14px;
 			min-height: 0;
 			flex: 1;
+			max-width: calc(100vw - 24px);
 		}
 
 		.editors.editors-block {
@@ -568,9 +592,10 @@
 <body>
 	<header class="topbar">
 		<div class="brand">
-			<button id="backBtn" class="secondary">Welcome</button>
+			<button id="backBtn" class="secondary"><span class="material-symbols-rounded">
+					arrow_back
+				</span></button>
 			<div class="brand-input">
-				<span>Project</span>
 				<input id="projectName" type="text" value="Baram Live Preview" />
 			</div>
 		</div>
@@ -583,19 +608,35 @@
 				<input id="cssHot" type="checkbox" checked />
 				<label for="cssHot">CSS hot reload</label>
 			</div>
-			<button id="runBtn">Run</button>
+			<button id="runBtn"><span class="material-symbols-rounded">
+					refresh
+				</span></button>
 			<div class="segmented" id="previewLayout" role="group" aria-label="Preview layout">
-				<button class="is-active" data-layout="right">Right</button>
-				<button data-layout="bottom">Bottom</button>
-				<button data-layout="hide">Hide</button>
+				<button class="is-active" data-layout="right"><span class="material-symbols-rounded">
+						right_panel_close
+					</span></button>
+				<button data-layout="bottom"><span class="material-symbols-rounded">
+						bottom_panel_close
+					</span></button>
+				<button data-layout="hide"><span class="material-symbols-rounded">
+						ad_off
+					</span></button>
 			</div>
 			<div class="segmented" id="editorLayout" role="group" aria-label="Editor layout">
-				<button class="is-active" data-layout="block">Block</button>
-				<button data-layout="flex">Flex</button>
+				<button class="is-active" data-layout="block"><span class="material-symbols-rounded">
+						view_agenda
+					</span></button>
+				<button data-layout="flex"><span class="material-symbols-rounded">
+						flex_no_wrap
+					</span></button>
 			</div>
 			<button id="toggleFilesBtn" class="secondary">Hide Files</button>
-			<button id="downloadBtn" class="secondary">Download Zip</button>
-			<button id="openTabBtn" class="secondary">Open Preview Tab</button>
+			<button id="downloadBtn" class="secondary"><span class="material-symbols-rounded">
+					download
+				</span></button>
+			<button id="openTabBtn" class="secondary"><span class="material-symbols-rounded">
+					open_in_browser
+				</span></button>
 		</div>
 	</header>
 
@@ -1746,6 +1787,29 @@
 			applyPreviewSize();
 		});
 	</script>
+	<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Baram Code Editor",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Web Browser",
+  "browserRequirements": "Requires JavaScript and LocalStorage",
+  "featureList": [
+    "Instant Start with no login",
+    "Real-time HTML/CSS/JS Preview",
+    "Hot Reloading",
+    "Auto-save to LocalStorage",
+    "Multi-file management",
+    "ZIP Export"
+  ],
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "JPY"
+  }
+}
+</script>
 </body>
 
 </html>
