@@ -737,7 +737,7 @@
 		</div>
 	</main>
 
-	<script src="./node_modules/monaco-editor/min/vs/loader.js"></script>
+	<script src="./barammodules/monaco-editor/min/vs/loader.js"></script>
 	<script>
 		const defaultContent = {
 			html: `\n<div class="card">\n  <h1>Baram Playground</h1>\n  <p>Edit HTML, CSS, and JS. CSS updates can hot reload without resetting JS.</p>\n  <button class="pulse">Try me</button>\n  <div class="count">Clicks: <span id="count">0</span></div>\n</div>\n`,
@@ -1578,7 +1578,7 @@
 		let cssEditor;
 		let jsEditor;
 
-		window.require.config({ paths: { vs: "/node_modules/monaco-editor/min/vs" } });
+		window.require.config({ paths: { vs: "/barammodules/monaco-editor/min/vs" } });
 		window.require(["vs/editor/editor.main"], () => {
 			monaco.editor.defineTheme("baramLight", {
 				base: "vs",
