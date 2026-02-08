@@ -6,7 +6,7 @@
   "author": "Microsoft Corporation",
   "license": "MIT",
   "typings": "./esm/vs/editor/editor.api.d.ts",
-  "module": "./esm/vs/editor/editor.main.js",
+  "module": "./esm/vs/editor/baram-editor-main.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/microsoft/vscode"
