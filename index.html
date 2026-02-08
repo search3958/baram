@@ -1578,7 +1578,7 @@
 		let cssEditor;
 		let jsEditor;
 
-		window.require.config({ paths: { vs: "/barammodules/monaco-editor/min/vs" } });
+		window.require.config({ paths: { vs: "./barammodules/monaco-editor/min/vs" } });
 		window.require(["vs/editor/baram-editor-main"], () => {
 			monaco.editor.defineTheme("baramLight", {
 				base: "vs",
@@ -1819,6 +1819,7 @@
   }
 }
 </script>
+<!--
 <script src="./baram/baram-editor-main.js"></script>
 
 <script src="./baram/_commonjsHelpers-CT9FvmAN.js"></script>
@@ -1861,7 +1862,6 @@
 <script src="./baram/less-C0eDYdqa.js"></script>
 <script src="./baram/lexon-iON-Kj97.js"></script>
 <script src="./baram/liquid-DqKjdPGy.js"></script>
-<script src="./baram/loader.js"></script>
 <script src="./baram/lspLanguageFeatures-kM9O9rjY.js"></script>
 <script src="./baram/lua-DtygF91M.js"></script>
 <script src="./baram/m3-CsR4AuFi.js"></script>
@@ -1933,6 +1933,6 @@
 <script src="./baram/xml-CdsdnY8S.js"></script>
 <script src="./baram/yaml-DYGvmE88.js"></script>
 	<link rel="stylesheet" href="./baram/baram-editor-main.css" />
-
+-->
 </body>
 </html>
