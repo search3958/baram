@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>CSS Pro Interpreter - Markdown Output Edition</title>
+    <style>
+        :root { --bg: #f8fafc; --accent: #2563eb; --text: #1e293b; }
+        body { font-family: "Hiragino Kaku Gothic ProN", Meiryo, sans-serif; background: var(--bg); color: var(--text); padding: 20px; }
+        .container { max-width: 1000px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        h2 { font-size: 1.1rem; border-left: 4px solid var(--accent); padding-left: 10px; margin: 20px 0 10px; }
+        textarea { width: 100%; padding: 15px; border: 2px solid #cbd5e1; border-radius: 8px; font-family: monospace; font-size: 13px; box-sizing: border-box; }
+        #cssInput { height: 120px; margin-bottom: 10px; }
+        #mdOutput { height: 500px; background: #f1f5f9; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>🎨 CSS Professional Interpreter (MD)</h1>
+    
+    <h2>1. CSS Input</h2>
+    <textarea id="cssInput" placeholder="解析したいCSSを貼り付けてください..."></textarea>
+    
+    <h2>2. Markdown Report Output</h2>
+    <textarea id="mdOutput" readonly placeholder="ここに解析結果がMarkdown形式で生成されます..."></textarea>
+</div>
+
+<script>
+    // --- 全色解析エンジンの完全移植 ---
+    function getColorName(colorStr) {
+        if (!colorStr) return "";
+        const ctx = document.createElement('canvas').getContext('2d');
+        ctx.fillStyle = colorStr;
+        const computed = ctx.fillStyle; 
+
+        if (colorStr.includes('var(')) {
+            const varMatch = colorStr.match(/var\(([^)]+)\)/);
+            return `変数 \`${varMatch ? varMatch[1] : 'unknown'}\``;
+        }
+        if (colorStr === 'transparent') return "透明";
+
+        let r, g, b;
+        if (computed.startsWith('#')) {
+            r = parseInt(computed.slice(1, 3), 16);
+            g = parseInt(computed.slice(3, 5), 16);
+            b = parseInt(computed.slice(5, 7), 16);
+        } else {
+            const match = computed.match(/\d+/g);
+            if (!match) return colorStr;
+            [r, g, b] = match.map(Number);
+        }
+
+        let r_n = r / 255, g_n = g / 255, b_n = b / 255;
+        let max = Math.max(r_n, g_n, b_n), min = Math.min(r_n, g_n, b_n);
+        let h, s, l = (max + min) / 2;
+
+        if (max === min) h = s = 0;
+        else {
+            let d = max - min;
+            s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+            switch (max) {
+                case r_n: h = (g_n - b_n) / d + (g_n < b_n ? 6 : 0); break;
+                case g_n: h = (b_n - r_n) / d + 2; break;
+                case b_n: h = (r_n - g_n) / d + 4; break;
+            }
+            h /= 6;
+        }
+
+        const hue = h * 360;
+        const sat = s * 100;
+        const light = l * 100;
+
+        let colorName = "グレー系の色";
+        if (sat < 10) {
+            if (light > 95) return "白";
+            if (light < 10) return "黒";
+            colorName = "灰色";
+        } else {
+            if (hue < 20 || hue > 340) colorName = "赤色";
+            else if (hue < 45) colorName = "オレンジ色";
+            else if (hue < 75) colorName = "黄色";
+            else if (hue < 160) colorName = "緑色";
+            else if (hue < 190) colorName = "水色";
+            else if (hue < 260) colorName = "青色";
+            else if (hue < 300) colorName = "紫色";
+            else colorName = "ピンク色";
+        }
+
+        let nuance = "";
+        if (light > 85) nuance = "白みがかった";
+        else if (light < 25) nuance = "暗い";
+        else if (sat > 85) nuance = "鮮やかな";
+        else if (sat < 35) nuance = "控えめな";
+
+        return `${nuance}${colorName}`;
+    }
+
+    // --- 全辞書データの完全移植 ---
+    const dict = {
+        'display': v => v === 'none' ? "非表示と設定されています。" : v === 'flex' ? "真ん中よせ横並びで表示されるレイアウトです。" : `表示形式は **${v}** です。`,
+        'color': v => `文字色は **${getColorName(v)}** です。`,
+        'background': v => `背景は **${getColorName(v)}** で彩られています。`,
+        'fill': v => `塗りつぶしは **${getColorName(v)}** です。`,
+        'text-decoration': v => v === 'none' ? "下線は非表示になっています。" : `装飾は **${v}** です。`,
+        'font-size': v => `文字サイズは **${v}** です。`,
+        'font-weight': v => parseInt(v) >= 500 ? "文字は少し太めのようです。" : `太さは **${v}** です。`,
+        'max-width': v => `最大幅は **${v}** です。`,
+        'margin-bottom': v => `下への余白(外部)は **${v}** になっています。`,
+        'align-items': v => v === 'center' ? "並び方は真ん中寄せです。" : `整列は **${v}** です。`,
+        'border': v => v === 'none' ? "枠線はありません。" : `枠線は **${v}** です。`,
+        'position': (v, all) => {
+            let res = `配置の基準を **${v}** に固定し、`;
+            if (all.bottom) res += `下から **${all.bottom}**、`;
+            if (all.left) res += `左から **${all.left}**、`;
+            if (all.right) res += `右から **${all.right}**、`;
+            return res.replace(/、$/, '') + " の位置で表示されています。";
+        }
+    };
+
+    function update() {
+        const css = document.getElementById('cssInput').value;
+        const blocks = css.match(/[^{]+\{[^}]+\}/g);
+        if (!blocks) {
+            document.getElementById('mdOutput').value = "";
+            return;
+        }
+
+        let mdFull = "# 🎨 CSS 解析レポート\n\n";
+
+        mdFull += blocks.map(block => {
+            const selector = block.split('{')[0].trim();
+            const declsStr = block.split('{')[1].split('}')[0];
+            const decls = declsStr.split(';').map(d => d.trim()).filter(d => d);
+            
+            const all = {};
+            decls.forEach(d => {
+                const parts = d.split(':');
+                if(parts.length < 2) return;
+                const p = parts[0].trim();
+                const v = parts.slice(1).join(':').trim();
+                all[p] = v;
+            });
+
+            const cats = { "📐 レイアウト・配置": [], "🎨 視覚効果・装飾": [], "✍️ タイポグラフィ": [] };
+            const used = new Set();
+
+            Object.entries(all).forEach(([p, v]) => {
+                if (used.has(p)) return;
+                
+                let text = dict[p] ? (p === 'position' ? dict[p](v, all) : dict[p](v)) : `\`${p}\` を \`${v}\` に指定しています。`;
+                
+                if (p === 'position') ['top','bottom','left','right'].forEach(k => used.add(k));
+
+                const category = ['display','position','align-items','gap','max-width','margin-bottom'].includes(p) ? "📐 レイアウト・配置" : 
+                                 ['color','background','fill','border','text-decoration'].includes(p) ? "🎨 視覚効果・装飾" : "✍️ タイポグラフィ";
+                cats[category].push(text);
+            });
+
+            let mdBlock = `## Selector: \`${selector}\` \n\n`;
+            for (const [title, lines] of Object.entries(cats)) {
+                if (!lines.length) continue;
+                mdBlock += `### ${title}\n`;
+                lines.forEach(l => mdBlock += `* ${l}\n`);
+                mdBlock += `\n`;
+            }
+            return mdBlock;
+        }).join('---\n\n');
+
+        document.getElementById('mdOutput').value = mdFull;
+    }
+
+    document.getElementById('cssInput').addEventListener('input', update);
+</script>
+</body>
+</html>
