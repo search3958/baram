@@ -1,14 +1,950 @@
-<!DOCTYPE html>
-<html lang="ja">
+<!doctype html>
+<html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="refresh" content="0;URL='https://search3958.github.io/baram/'">
-    <title>Redirecting...</title>
-    <script type="text/javascript">
-        window.location.href = "https://search3958.github.io/baram/";
-    </script>
+
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6151036058675874"
+    crossorigin="anonymous"></script>
+
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <title>Baram Code | ログイン不要のブラウザ完結型コードエディタ</title>
+  <meta name="description"
+    content="CodePenより手軽なプロトタイピング。Baram Codeは、インストールもログインも不要なブラウザ完結型のWeb開発プレイグラウンド。すべてをローカルに保存し、爆速でHTML/CSS/JSをテストできます。" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Baram Code - 爆速でアイデアを形にする、軽量コードエディタ" />
+  <meta property="og:description" content="ブラウザを開いて、書くだけ。データは自分のブラウザに保存される、最もミニマルな開発環境。" />
+  <meta property="og:url" content="https://search3958.github.io/baram/welcome" />
+  <meta property="og:image" content="https://search3958.github.io/baram/welcome/og-image.png" />
+  <link rel="canonical" href="https://search3958.github.io/baram/welcome" />
+
+  <meta name="keywords" content="オンラインエディタ, CodePen 代替, フロントエンド 練習, HTML プレイグラウンド, ログイン不要 エディタ, Baram Code, バラムコード, BaramCode, 바람코드, 바람 코드" />
+
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Baram Code",
+  "url": "https://search3958.github.io/baram/welcome",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Web",
+  "description": "CodePenスタイルの軽量プレイグラウンド。ログイン不要で即座にコードを書き始められ、プロジェクトをZIP形式でダウンロード可能。",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "featureList": [
+    "No installation required",
+    "Local browser storage",
+    "Real-time live preview",
+    "ZIP export support",
+    "Multi-language (JA, EN, KO, ZH)"
+  ]
+}
+</script>
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;600&family=Noto+Sans+JP:wght@400;500;600&family=Noto+Sans+KR:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;600&display=swap");
+
+    :root {
+      color-scheme: light dark;
+      --bg: #f6f0e8;
+      --bg-ink: #1a1a1a;
+      --panel: #fffdf9;
+      --panel-strong: #ffffff;
+      --border: #e2d9cc;
+      --accent: #0b7a75;
+      --accent-strong: #08645f;
+      --muted: #746a5c;
+      --shadow: 0 16px 40px rgba(22, 18, 9, 0.1);
+      --bg-gradient: radial-gradient(circle at top left, #fff8ee 0%, #f6f0e8 45%, #efe4d4 100%);
+      --button-secondary-bg: #f0e6d6;
+      --button-secondary-text: #2a231c;
+      --chip-bg: rgba(11, 122, 117, 0.12);
+      --chip-text: #0b7a75;
+      --card-bg: #fffdf9;
+      --card-input: #1a1a1a;
+      --card-hover: #ffffff;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #15110d;
+        --bg-ink: #f2e9dd;
+        --panel: #231d17;
+        --panel-strong: #2d261f;
+        --border: #3a3229;
+        --accent-strong: #3bb39e;
+        --muted: #b7a997;
+        --shadow: 0 30px 70px -48px rgba(0, 0, 0, 0.8);
+        --bg-gradient: radial-gradient(circle at top left, #2b241d 0%, #191511 55%, #120f0c 100%);
+        --button-secondary-bg: #2c2620;
+        --button-secondary-text: #f2e9dd;
+        --chip-bg: rgba(76, 201, 176, 0.16);
+        --chip-text: #9fe8d6;
+        --card-bg: #241f1a;
+        --card-input: #f2e9dd;
+        --card-hover: #2c261f;
+      }
+      .projects{
+        background: rgb(0 0 0 / 45%)!important;
+        border: 1px solid rgb(226 217 204 / 22%)!important;
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      color: var(--bg-ink);
+      font-family: "Space Grotesk", "Noto Sans JP", "Noto Sans KR", "Noto Sans SC", sans-serif;
+      background: var(--bg-gradient);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+    }
+
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    body::before {
+      background:
+        radial-gradient(circle at 15% 10%, rgba(11, 122, 117, 0.18), transparent 55%),
+        radial-gradient(circle at 80% 15%, rgba(234, 185, 118, 0.18), transparent 50%),
+        radial-gradient(circle at 70% 80%, rgba(72, 91, 126, 0.16), transparent 55%);
+      opacity: 0.8;
+    }
+
+
+    button {
+      border: none;
+      border-radius: 16px;
+      padding: 10px 18px;
+      background: var(--accent);
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+      box-shadow: 0 10px 20px -12px rgba(11, 122, 117, 0.7);
+      corner-shape: superellipse(1.6);
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      background: var(--accent-strong);
+    }
+
+    button.secondary {
+      background: var(--button-secondary-bg);
+      color: var(--button-secondary-text);
+      box-shadow: none;
+      border: 1px solid var(--border);
+    }
+
+    button.ghost {
+      background: transparent;
+      color: var(--muted);
+      box-shadow: none;
+      border: 1px solid var(--border);
+    }
+
+    .landing {
+      width:100%;
+      max-width: 2000px;
+      margin: 0 auto;
+      padding: 32px 24px 40px;
+      display: grid;
+      gap: 32px;
+      position: relative;
+        grid-template-columns: 1fr;
+    }
+
+    .intro {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      align-self: start;
+      z-index: 1;
+    align-items: center;
+    }
+
+    .brand-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .brand-title {
+      font-size: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+    }
+
+    .brand-chip {
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: var(--chip-bg);
+      color: var(--chip-text);
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .hero-greeting {
+      font-size: clamp(2.4rem, 3.6vw, 3.6rem);
+      font-weight: 600;
+      line-height: 1.2;
+      margin: 0;
+    }
+
+    .hero-subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .metrics {
+      display: flex;
+      gap: 12px;
+    }
+
+    .metric {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 16px;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .metric span {
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+    }
+
+    .metric strong {
+      font-size: 1.3rem;
+    }
+
+    .projects {
+      background: rgba(255, 253, 249, 0.6);
+      border: 1px solid rgba(226, 217, 204, 0.7);
+      border-radius: 40px;
+      padding: 20px 22px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(16px);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      min-height: 60vh;
+      corner-shape: superellipse(1.6);
+    }
+
+    .section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .section-head h2 {
+      margin: 0;
+      font-size: 1.3rem;
+    }
+
+    .section-meta {
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    .project-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 16px;
+      padding: 6px 2px 12px;
+      max-height: calc(100vh - 220px);
+      overflow: visible;
+    }
+
+    .project-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 35px;
+      box-shadow: var(--shadow);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: transform 0.2s ease, border 0.2s ease, background 0.2s ease;
+      overflow: visible;
+      corner-shape: superellipse(1.6);
+    }
+
+    .project-card:hover {
+      transform: translateY(-4px);
+      background: var(--card-hover);
+      border-color: rgba(11, 122, 117, 0.3);
+    }
+
+    .project-card input {
+      border: none;
+      background: transparent;
+      font-size: 1rem;
+      font-weight: 600;
+      outline: none;
+      color: var(--card-input);
+    }
+
+    .project-meta {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .project-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .empty {
+      background: var(--panel);
+      border: 1px dashed var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    @media (max-width: 980px) {
+
+      .intro {
+        position: static;
+      }
+
+      .projects {
+        min-height: auto;
+      }
+
+      .project-grid {
+        max-height: none;
+      }
+    }
+  </style>
 </head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-7N56NHPY3C"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag() { dataLayer.push(arguments); }
+  gtag('js', new Date());
+
+  gtag('config', 'G-7N56NHPY3C');
+</script>
+
 <body>
-    <p>こちらのURLは古くなっています。<a href="https://search3958.github.io/baram/">リダイレクトされない場合はこちらをクリックしてください。</a></p>
+  <main class="landing">
+    <section class="intro">
+      <div class="brand-row">
+        <h1 class="brand-title">Baram Code - ブラウザ完結型コードエディタ</h1>
+      </div>
+      <h2 class="hero-greeting" id="greeting"></h1>
+      <p class="hero-subtitle" data-i18n="subtitle"></p>
+      <div class="hero-actions">
+        <button id="newProjectBtn" data-i18n="newProject"></button>
+      </div>
+      <div class="metrics">
+        <div class="metric">
+          <span data-i18n="projects"></span>
+          <strong id="projectCount">0</strong>
+        </div>
+        <div class="metric">
+          <span data-i18n="lastUpdate"></span>
+          <strong id="projectUpdated">—</strong>
+        </div>
+      </div>
+    </section>
+
+    <section class="projects">
+      <div class="section-head">
+        <div>
+          <h2 data-i18n="projects"></h2>
+          <div class="section-meta" id="projectSummary">0 projects</div>
+        </div>
+      </div>
+      <div id="projectGrid" class="project-grid"></div>
+    </section>
+  </main>
+
+  <script>
+    // Multilingual translations
+    const translations = {
+      ja: {
+        localPlayground: "Local Playground",
+        subtitle: "小さなアイデアを素早く作成、テスト、改良。すべてがブラウザ内に保存されます。",
+        newProject: "新しいプロジェクト",
+        projects: "プロジェクト",
+        lastUpdate: "最終更新",
+        noProjects: "プロジェクトがありません。最初のプロジェクトを作成しましょう。",
+        projectsCount: "{count} プロジェクト",
+        updated: "更新日時",
+        open: "開く",
+        deleteConfirm: "{name} を削除しますか？",
+        defaultProjectName: "Baram Live Preview",
+        greetings: [
+          "こんにちは！",
+          "さあ始めましょう。今日のアイデアは？",
+          "準備OK？新しいプロジェクトを作りましょう。",
+          "やる気満々ですね。何を作りますか？",
+          "今日はどんなUIにしますか？",
+          "こんにちは！コードを書く時間です。",
+          "次の作品、ここから始まります。",
+          "思いついたらすぐ試しましょう。",
+          "小さな実験でも大歓迎です。",
+          "新しいレイアウト、試してみませんか？",
+          "集中タイムです。始めますか？",
+          "デザインの冒険へ。",
+          "一行目から始めましょう。",
+          "今日は何を磨きますか？",
+          "こんにちは！まずは試作から。",
+          "ここはあなたのワークショップ。",
+          "新しい動き、試してみよう。",
+          "アイデアの火花、今すぐ形に。",
+          "今の気分は？ミニプロジェクトでもOK。",
+          "今日のテーマは何ですか？",
+          "集中する準備はできましたか？",
+          "さあ、試し書きからいきましょう。",
+          "こんにちは！一緒に作りましょう。",
+          "コードとデザインの時間です。",
+          "ひらめいたらすぐ実装。",
+          "整えて、動かして、完成へ。",
+          "今日はどんな実験を？",
+          "Baram Codeへようこそ。",
+        ]
+      },
+      en: {
+        localPlayground: "Local Playground",
+        subtitle: "Craft, test, and refine small ideas fast. Everything stays in your browser.",
+        newProject: "New Project",
+        projects: "Projects",
+        lastUpdate: "Last Update",
+        noProjects: "No projects yet. Create your first project.",
+        projectsCount: "{count} projects",
+        updated: "Updated",
+        open: "Open",
+        deleteConfirm: "Delete {name}?",
+        defaultProjectName: "Baram Live Preview",
+        greetings: [
+          "Hello!",
+          "Let's get started. What's your idea today?",
+          "Ready? Let's create a new project.",
+          "You look motivated. What will you build?",
+          "What kind of UI will you make today?",
+          "Hello! Time to write some code.",
+          "Your next creation starts here.",
+          "Got an idea? Let's try it now.",
+          "Small experiments are welcome too.",
+          "Want to try a new layout?",
+          "Focus time. Ready to start?",
+          "Adventure in design awaits.",
+          "Let's start with the first line.",
+          "What will you polish today?",
+          "Hello! Let's start with a prototype.",
+          "This is your workshop.",
+          "Let's try some new interactions.",
+          "Spark of an idea? Shape it now.",
+          "What's your mood? Mini projects are fine.",
+          "What's today's theme?",
+          "Ready to concentrate?",
+          "Let's start with a quick sketch.",
+          "Hello! Let's build together.",
+          "Time for code and design.",
+          "Got inspiration? Implement it now.",
+          "Refine, animate, complete.",
+          "What experiment today?",
+          "Welcome to Baram Code.",
+        ]
+      },
+      ko: {
+        localPlayground: "로컬 플레이그라운드",
+        subtitle: "작은 아이디어를 빠르게 제작, 테스트, 개선하세요. 모든 것이 브라우저에 저장됩니다.",
+        newProject: "새 프로젝트",
+        projects: "프로젝트",
+        lastUpdate: "최근 업데이트",
+        noProjects: "프로젝트가 없습니다. 첫 번째 프로젝트를 만들어보세요.",
+        projectsCount: "{count}개의 프로젝트",
+        updated: "업데이트",
+        open: "열기",
+        deleteConfirm: "{name}을(를) 삭제하시겠습니까?",
+        defaultProjectName: "Baram Live Preview",
+        greetings: [
+          "안녕하세요!",
+          "시작해볼까요. 오늘의 아이디어는?",
+          "준비되셨나요? 새 프로젝트를 만들어봅시다.",
+          "의욕이 넘치시네요. 무엇을 만들까요?",
+          "오늘은 어떤 UI를 만드시겠어요?",
+          "안녕하세요! 코드를 작성할 시간입니다.",
+          "다음 작품이 여기서 시작됩니다.",
+          "아이디어가 떠올랐나요? 바로 시도해봅시다.",
+          "작은 실험도 환영합니다.",
+          "새로운 레이아웃을 시도해보시겠어요?",
+          "집중 타임입니다. 시작할까요?",
+          "디자인의 모험으로.",
+          "첫 번째 줄부터 시작해봅시다.",
+          "오늘은 무엇을 다듬을까요?",
+          "안녕하세요! 프로토타입부터 시작해봅시다.",
+          "여기는 당신의 작업실입니다.",
+          "새로운 인터랙션을 시도해봅시다.",
+          "아이디어의 불꽃, 지금 바로 형태로.",
+          "기분이 어떠세요? 미니 프로젝트도 좋습니다.",
+          "오늘의 테마는 무엇인가요?",
+          "집중할 준비가 되셨나요?",
+          "빠른 스케치부터 시작해봅시다.",
+          "안녕하세요! 함께 만들어봅시다.",
+          "코드와 디자인의 시간입니다.",
+          "영감이 떠올랐나요? 지금 바로 구현하세요.",
+          "다듬고, 움직이고, 완성하세요.",
+          "오늘은 어떤 실험을?",
+          "Baram Code에 오신 것을 환영합니다.",
+        ]
+      },
+      zh: {
+        localPlayground: "本地实验场",
+        subtitle: "快速创建、测试和优化小创意。所有内容都保存在浏览器中。",
+        newProject: "新项目",
+        projects: "项目",
+        lastUpdate: "最近更新",
+        noProjects: "还没有项目。创建您的第一个项目。",
+        projectsCount: "{count} 个项目",
+        updated: "更新时间",
+        open: "打开",
+        deleteConfirm: "删除 {name}？",
+        defaultProjectName: "Baram Live Preview",
+        greetings: [
+          "你好！",
+          "让我们开始吧。今天的想法是什么？",
+          "准备好了吗？让我们创建一个新项目。",
+          "您看起来很有动力。要做什么？",
+          "今天要做什么样的UI？",
+          "你好！该写代码了。",
+          "您的下一个作品从这里开始。",
+          "有想法了吗？现在就试试。",
+          "小实验也很欢迎。",
+          "想尝试新布局吗？",
+          "专注时间。准备开始了吗？",
+          "设计冒险等着你。",
+          "让我们从第一行开始。",
+          "今天要完善什么？",
+          "你好！让我们从原型开始。",
+          "这是您的工作室。",
+          "让我们尝试一些新的交互。",
+          "灵感火花，现在就塑造它。",
+          "心情如何？迷你项目也可以。",
+          "今天的主题是什么？",
+          "准备好集中注意力了吗？",
+          "让我们从快速草图开始。",
+          "你好！让我们一起建造。",
+          "代码和设计的时间到了。",
+          "有灵感了吗？现在就实现它。",
+          "完善、动画、完成。",
+          "今天做什么实验？",
+          "欢迎来到 Baram Code。",
+        ]
+      }
+    };
+
+    // Detect browser language
+    function detectLanguage() {
+      const browserLang = navigator.language || navigator.userLanguage;
+      const langCode = browserLang.toLowerCase();
+
+      if (langCode.startsWith('ja')) return 'ja';
+      if (langCode.startsWith('ko')) return 'ko';
+      if (langCode.startsWith('zh')) return 'zh';
+      return 'en'; // default to English
+    }
+
+    const currentLang = detectLanguage();
+    const i18n = translations[currentLang];
+
+    // Apply translations
+    function applyTranslations() {
+      document.querySelectorAll('[data-i18n]').forEach(element => {
+        const key = element.getAttribute('data-i18n');
+        if (i18n[key]) {
+          element.textContent = i18n[key];
+        }
+      });
+
+      // Update HTML lang attribute
+      document.documentElement.lang = currentLang;
+    }
+
+    function t(key, replacements = {}) {
+      let text = i18n[key] || key;
+      Object.keys(replacements).forEach(k => {
+        text = text.replace(`{${k}}`, replacements[k]);
+      });
+      return text;
+    }
+
+    const defaultContent = {
+      html: `\n<div class="card">\n  <h1>歓迎</h1>\n  <p>エディタでHTML,CSS,Javascriptを編集します。より大きなスペースが必要ですか？右上のボタンをクリックしてください！</p>\n  <button class="pulse">Try me</button>\n  <div class="count">Clicks: <span id="count">0</span></div>\n</div>\n`,
+      css: `\n* {\n  box-sizing: border-box;\n}\n\nbody {\n  margin: 0;\n  font-family: "Space Grotesk", sans-serif;\n  background: radial-gradient(circle at top, #fff, #f3f1ec 60%);\n  color: #1d1b16;\n  min-height: 100vh;\n  display: grid;\n  place-items: center;\n  padding: 32px;\n}\n\n.card {\n  background: #ffffff;\n  border: 1px solid #e0d7c9;\n  border-radius: 20px;\n  padding: 28px 32px;\n  width: min(520px, 92vw);\n  box-shadow: 0 24px 40px -28px rgba(30, 24, 15, 0.5);\n}\n\n.card h1 {\n  margin-top: 0;\n  font-size: 2.1rem;\n}\n\n.card p {\n  color: #5a5145;\n}\n\n.pulse {\n  margin-top: 16px;\n  border: none;\n  border-radius: 999px;\n  padding: 12px 18px;\n  font-weight: 600;\n  cursor: pointer;\n  background: #0b7a75;\n  color: #fff;\n  box-shadow: 0 16px 30px -20px rgba(11, 122, 117, 0.8);\n  transition: transform 0.2s ease;\n}\n\n.pulse:hover {\n  transform: translateY(-2px);\n}\n\n.count {\n  margin-top: 18px;\n  font-weight: 600;\n}\n`,
+      js: `\nconst button = document.querySelector('.pulse');\nconst counter = document.querySelector('#count');\nlet value = 0;\n\nbutton?.addEventListener('click', () => {\n  value += 1;\n  if (counter) counter.textContent = String(value);\n});\n`,
+    };
+
+    const DB_KEY = "baram-projects-v1";
+    const LEGACY_KEY = "baram-playground";
+
+    function loadDb() {
+      try {
+        const raw = localStorage.getItem(DB_KEY);
+        return raw ? JSON.parse(raw) : { projects: {}, lastProjectId: null };
+      } catch (error) {
+        return { projects: {}, lastProjectId: null };
+      }
+    }
+
+    function saveDb(db) {
+      localStorage.setItem(DB_KEY, JSON.stringify(db));
+    }
+
+    function createId() {
+      if (window.crypto?.randomUUID) {
+        return window.crypto.randomUUID();
+      }
+      return `id-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    }
+
+    function createProject(name) {
+      const now = new Date().toISOString();
+      const htmlFile = { id: createId(), name: "index.html", content: defaultContent.html };
+      const cssFile = { id: createId(), name: "styles.css", content: defaultContent.css };
+      const jsFile = { id: createId(), name: "app.js", content: defaultContent.js };
+
+      return {
+        id: createId(),
+        name: name || t('defaultProjectName'),
+        createdAt: now,
+        updatedAt: now,
+        files: {
+          html: [htmlFile],
+          css: [cssFile],
+          js: [jsFile],
+        },
+        active: {
+          html: htmlFile.id,
+          css: cssFile.id,
+          js: jsFile.id,
+        },
+        settings: {
+          autoUpdate: true,
+          cssHot: true,
+          previewLayout: "right",
+          editorLayout: "block",
+          filesCollapsed: false,
+          groupCollapsed: { html: false, css: false, js: false },
+          editorSizes: { block: {}, flex: {} },
+          previewSize: { right: null, bottom: null },
+        },
+      };
+    }
+
+    function migrateLegacy(db) {
+      if (db && Object.keys(db.projects || {}).length) return db;
+      const legacyRaw = localStorage.getItem(LEGACY_KEY);
+      if (!legacyRaw) return db;
+      try {
+        const legacy = JSON.parse(legacyRaw);
+        const project = createProject(t('defaultProjectName'));
+        project.files.html[0].content = legacy.html || defaultContent.html;
+        project.files.css[0].content = legacy.css || defaultContent.css;
+        project.files.js[0].content = legacy.js || defaultContent.js;
+        project.files.css[0].name = legacy.cssName || project.files.css[0].name;
+        project.files.js[0].name = legacy.jsName || project.files.js[0].name;
+        project.settings.autoUpdate = legacy.autoUpdate ?? true;
+        project.settings.cssHot = legacy.cssHot ?? true;
+        project.settings.previewLayout = legacy.layout || "right";
+        db.projects[project.id] = project;
+        db.lastProjectId = project.id;
+        saveDb(db);
+        return db;
+      } catch (error) {
+        return db;
+      }
+    }
+
+    function sanitizeFileName(name) {
+      return name.replace(/[^a-z0-9\-_]+/gi, "-").replace(/^-+|-+$/g, "") || "project";
+    }
+
+    function getDosTime(date) {
+      return (date.getHours() << 11) | (date.getMinutes() << 5) | Math.floor(date.getSeconds() / 2);
+    }
+
+    function getDosDate(date) {
+      return ((date.getFullYear() - 1980) << 9) | ((date.getMonth() + 1) << 5) | date.getDate();
+    }
+
+    const crcTable = (() => {
+      const table = new Uint32Array(256);
+      for (let i = 0; i < 256; i += 1) {
+        let value = i;
+        for (let j = 0; j < 8; j += 1) {
+          value = value & 1 ? 0xedb88320 ^ (value >>> 1) : value >>> 1;
+        }
+        table[i] = value >>> 0;
+      }
+      return table;
+    })();
+
+    function crc32(buffer) {
+      let crc = 0xffffffff;
+      for (let i = 0; i < buffer.length; i += 1) {
+        crc = (crc >>> 8) ^ crcTable[(crc ^ buffer[i]) & 0xff];
+      }
+      return (crc ^ 0xffffffff) >>> 0;
+    }
+
+    function createZipBlob(entries) {
+      const encoder = new TextEncoder();
+      const date = new Date();
+      const dosTime = getDosTime(date);
+      const dosDate = getDosDate(date);
+
+      let offset = 0;
+      const localParts = [];
+      const centralParts = [];
+
+      entries.forEach((entry) => {
+        const nameBytes = encoder.encode(entry.name);
+        const dataBytes = encoder.encode(entry.content || "");
+        const crc = crc32(dataBytes);
+
+        const localHeader = new Uint8Array(30 + nameBytes.length);
+        const localView = new DataView(localHeader.buffer);
+        localView.setUint32(0, 0x04034b50, true);
+        localView.setUint16(4, 20, true);
+        localView.setUint16(6, 0, true);
+        localView.setUint16(8, 0, true);
+        localView.setUint16(10, dosTime, true);
+        localView.setUint16(12, dosDate, true);
+        localView.setUint32(14, crc, true);
+        localView.setUint32(18, dataBytes.length, true);
+        localView.setUint32(22, dataBytes.length, true);
+        localView.setUint16(26, nameBytes.length, true);
+        localView.setUint16(28, 0, true);
+        localHeader.set(nameBytes, 30);
+
+        localParts.push(localHeader, dataBytes);
+
+        const centralHeader = new Uint8Array(46 + nameBytes.length);
+        const centralView = new DataView(centralHeader.buffer);
+        centralView.setUint32(0, 0x02014b50, true);
+        centralView.setUint16(4, 20, true);
+        centralView.setUint16(6, 20, true);
+        centralView.setUint16(8, 0, true);
+        centralView.setUint16(10, 0, true);
+        centralView.setUint16(12, dosTime, true);
+        centralView.setUint16(14, dosDate, true);
+        centralView.setUint32(16, crc, true);
+        centralView.setUint32(20, dataBytes.length, true);
+        centralView.setUint32(24, dataBytes.length, true);
+        centralView.setUint16(28, nameBytes.length, true);
+        centralView.setUint16(30, 0, true);
+        centralView.setUint16(32, 0, true);
+        centralView.setUint16(34, 0, true);
+        centralView.setUint16(36, 0, true);
+        centralView.setUint32(38, 0, true);
+        centralView.setUint32(42, offset, true);
+        centralHeader.set(nameBytes, 46);
+        centralParts.push(centralHeader);
+
+        offset += localHeader.length + dataBytes.length;
+      });
+
+      const centralSize = centralParts.reduce((sum, part) => sum + part.length, 0);
+      const centralOffset = offset;
+
+      const endRecord = new Uint8Array(22);
+      const endView = new DataView(endRecord.buffer);
+      endView.setUint32(0, 0x06054b50, true);
+      endView.setUint16(4, 0, true);
+      endView.setUint16(6, 0, true);
+      endView.setUint16(8, entries.length, true);
+      endView.setUint16(10, entries.length, true);
+      endView.setUint32(12, centralSize, true);
+      endView.setUint32(16, centralOffset, true);
+      endView.setUint16(20, 0, true);
+
+      return new Blob([...localParts, ...centralParts, endRecord], { type: "application/zip" });
+    }
+
+    function downloadZip(project) {
+      const files = [
+        ...project.files.html,
+        ...project.files.css,
+        ...project.files.js,
+      ].map((file) => ({ name: file.name, content: file.content }));
+
+      const blob = createZipBlob(files);
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `${sanitizeFileName(project.name)}.zip`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+    }
+
+    const projectGrid = document.getElementById("projectGrid");
+    const newProjectBtn = document.getElementById("newProjectBtn");
+    const greetingEl = document.getElementById("greeting");
+    const projectCountEl = document.getElementById("projectCount");
+    const projectUpdatedEl = document.getElementById("projectUpdated");
+    const projectSummaryEl = document.getElementById("projectSummary");
+
+    // Apply translations on load
+    applyTranslations();
+
+    if (greetingEl) {
+      const greetings = i18n.greetings;
+      const index = Math.floor(Math.random() * greetings.length);
+      greetingEl.textContent = greetings[index];
+    }
+
+    let db = migrateLegacy(loadDb());
+
+    function formatDate(value) {
+      if (!value) return "";
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return "";
+      return date.toLocaleString(currentLang);
+    }
+
+    function updateSummary(projects) {
+      if (projectCountEl) projectCountEl.textContent = String(projects.length);
+      if (projectSummaryEl) {
+        projectSummaryEl.textContent = projects.length
+          ? t('projectsCount', { count: projects.length })
+          : t('noProjects');
+      }
+      const latest = projects
+        .map((project) => project.updatedAt)
+        .filter(Boolean)
+        .sort()
+        .pop();
+      if (projectUpdatedEl) {
+        projectUpdatedEl.textContent = latest ? formatDate(latest) : "—";
+      }
+    }
+
+    function renderProjects() {
+      const projects = Object.values(db.projects || {});
+      projects.sort((a, b) => (b.updatedAt || "").localeCompare(a.updatedAt || ""));
+
+      projectGrid.innerHTML = "";
+      updateSummary(projects);
+
+      if (!projects.length) {
+        const empty = document.createElement("div");
+        empty.className = "empty";
+        empty.textContent = t('noProjects');
+        projectGrid.appendChild(empty);
+        return;
+      }
+
+      projects.forEach((project) => {
+        const card = document.createElement("div");
+        card.className = "project-card";
+
+        const nameInput = document.createElement("input");
+        nameInput.value = project.name || t('defaultProjectName');
+        nameInput.addEventListener("input", () => {
+          project.name = nameInput.value.trim() || t('defaultProjectName');
+          project.updatedAt = new Date().toISOString();
+          db.projects[project.id] = project;
+          saveDb(db);
+          updateSummary(Object.values(db.projects || {}));
+        });
+
+        const meta = document.createElement("div");
+        meta.className = "project-meta";
+        meta.textContent = `${t('updated')}: ${formatDate(project.updatedAt)}`;
+
+        const actions = document.createElement("div");
+        actions.className = "project-actions";
+
+        const openBtn = document.createElement("button");
+        openBtn.textContent = t('open');
+        openBtn.addEventListener("click", () => {
+          db.lastProjectId = project.id;
+          saveDb(db);
+          window.location.href = `edit.html?id=${project.id}`;
+        });
+
+        const downloadBtn = document.createElement("button");
+        downloadBtn.className = "secondary";
+        downloadBtn.innerHTML = `<span class="material-symbols-rounded">download</span>`;
+        downloadBtn.addEventListener("click", () => downloadZip(project));
+
+        const deleteBtn = document.createElement("button");
+        deleteBtn.className = "ghost";
+        deleteBtn.innerHTML = `<span class="material-symbols-rounded">delete_forever</span>`;
+        deleteBtn.addEventListener("click", () => {
+          const ok = window.confirm(t('deleteConfirm', { name: project.name || t('defaultProjectName') }));
+          if (!ok) return;
+          delete db.projects[project.id];
+          saveDb(db);
+          renderProjects();
+        });
+
+        actions.appendChild(openBtn);
+        actions.appendChild(downloadBtn);
+        actions.appendChild(deleteBtn);
+
+        card.appendChild(nameInput);
+        card.appendChild(meta);
+        card.appendChild(actions);
+        projectGrid.appendChild(card);
+      });
+    }
+
+    newProjectBtn.addEventListener("click", () => {
+      const project = createProject(t('defaultProjectName'));
+      db.projects[project.id] = project;
+      db.lastProjectId = project.id;
+      saveDb(db);
+      window.location.href = `edit.html?id=${project.id}`;
+    });
+
+    renderProjects();
+  </script>
+  <script src="https://search3958.github.io/check.js"></script>
 </body>
+
 </html>
