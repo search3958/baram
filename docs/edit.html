@@ -1,0 +1,654 @@
+<!doctype html>
+<html lang="ja">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Baram Docs</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    .page {
+      min-height: 100vh;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 10px;
+      overflow: hidden;
+    }
+
+    .topbar,
+    .toolbar,
+    .left-controls,
+    .right-controls,
+    .statusbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      flex: 0 0 auto;
+    }
+
+    .topbar {
+      justify-content: space-between;
+      align-items: end;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 180px;
+    }
+
+    .field input {
+      width: 100%;
+    }
+
+    .workspace {
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #hybridEditor {
+      flex: 1;
+      min-height: 0;
+      overflow: auto;
+      padding: 8px;
+      line-height: 1.5;
+    }
+
+    .line {
+      display: block;
+      min-height: 1.5em;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .line.h1 {
+      font-size: 1.35em;
+      font-weight: 700;
+    }
+
+    .line.h2 {
+      font-size: 1.2em;
+      font-weight: 700;
+    }
+
+    .line.h3 {
+      font-size: 1.05em;
+      font-weight: 700;
+    }
+
+    .line.quote {
+      font-style: italic;
+    }
+
+    .line.list,
+    .line.olist {
+      padding-left: 1ch;
+    }
+
+    .md-token {
+      opacity: 0.75;
+    }
+
+    .statusbar {
+      min-height: 24px;
+      justify-content: space-between;
+    }
+
+    @media (max-width: 900px) {
+      .topbar {
+        align-items: stretch;
+      }
+
+      .left-controls,
+      .right-controls {
+        width: 100%;
+      }
+
+      .field {
+        min-width: 140px;
+        flex: 1;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="page">
+    <header class="topbar">
+      <div class="left-controls">
+        <button type="button" id="backBtn">一覧へ戻る</button>
+        <label class="field">
+          <span>Document Name</span>
+          <input id="projectName" type="text" />
+        </label>
+      </div>
+
+      <div class="right-controls">
+        <label class="field">
+          <span>File Name</span>
+          <input id="fileName" type="text" />
+        </label>
+        <button type="button" id="downloadBtn">.md ダウンロード</button>
+      </div>
+    </header>
+
+    <section class="toolbar" role="group" aria-label="markdown helpers">
+      <button type="button" class="fmt-btn" data-kind="line" data-prefix="# ">H1</button>
+      <button type="button" class="fmt-btn" data-kind="line" data-prefix="## ">H2</button>
+      <button type="button" class="fmt-btn" data-kind="wrap" data-prefix="**" data-suffix="**">Bold</button>
+      <button type="button" class="fmt-btn" data-kind="wrap" data-prefix="*" data-suffix="*">Italic</button>
+      <button type="button" class="fmt-btn" data-kind="line" data-prefix="- ">UL</button>
+      <button type="button" class="fmt-btn" data-kind="line" data-prefix="1. ">OL</button>
+      <button type="button" class="fmt-btn" data-kind="line" data-prefix="> ">Quote</button>
+      <button type="button" class="fmt-btn" data-kind="wrap" data-prefix="`" data-suffix="`">Code</button>
+      <button type="button" id="insertLinkBtn">Link</button>
+    </section>
+
+    <section class="workspace">
+      <div id="hybridEditor" contenteditable="true" spellcheck="false" aria-label="Markdown hybrid editor"></div>
+    </section>
+
+    <footer class="statusbar">
+      <span id="statusText">Ready</span>
+      <span>Hybrid Markdown WYSIWYG</span>
+    </footer>
+  </main>
+
+  <script>
+    const DB_KEY = "baram-docs-v1";
+    const DEFAULT_NAME = "Baram Doc";
+    const DEFAULT_FILE_NAME = "note.md";
+    const DEFAULT_CONTENT = "# New Document\n\nWrite your markdown here.\n";
+
+    const params = new URLSearchParams(window.location.search);
+
+    const backBtn = document.getElementById("backBtn");
+    const projectNameInput = document.getElementById("projectName");
+    const fileNameInput = document.getElementById("fileName");
+    const downloadBtn = document.getElementById("downloadBtn");
+    const hybridEditor = document.getElementById("hybridEditor");
+    const statusText = document.getElementById("statusText");
+    const insertLinkBtn = document.getElementById("insertLinkBtn");
+
+    let project = null;
+    let sourceText = "";
+    let isRendering = false;
+    let isComposing = false;
+
+    function createId() {
+      if (window.crypto && typeof window.crypto.randomUUID === "function") {
+        return window.crypto.randomUUID();
+      }
+      return `id-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    }
+
+    function nowIso() {
+      return new Date().toISOString();
+    }
+
+    function normalizeFileName(name) {
+      const value = (name || "").trim();
+      if (!value) return DEFAULT_FILE_NAME;
+      return value.toLowerCase().endsWith(".md") ? value : `${value}.md`;
+    }
+
+    function normalizeText(text) {
+      return String(text || "").replace(/\r\n?/g, "\n");
+    }
+
+    function createProject(name) {
+      const now = nowIso();
+      return {
+        id: createId(),
+        name: name || DEFAULT_NAME,
+        fileName: DEFAULT_FILE_NAME,
+        content: DEFAULT_CONTENT,
+        createdAt: now,
+        updatedAt: now,
+      };
+    }
+
+    function loadDb() {
+      try {
+        const raw = localStorage.getItem(DB_KEY);
+        const parsed = raw ? JSON.parse(raw) : null;
+        if (!parsed || typeof parsed !== "object") {
+          return { projects: {}, lastProjectId: null };
+        }
+        if (!parsed.projects || typeof parsed.projects !== "object") {
+          parsed.projects = {};
+        }
+        if (!Object.prototype.hasOwnProperty.call(parsed, "lastProjectId")) {
+          parsed.lastProjectId = null;
+        }
+        return parsed;
+      } catch (_error) {
+        return { projects: {}, lastProjectId: null };
+      }
+    }
+
+    function saveDb(db) {
+      localStorage.setItem(DB_KEY, JSON.stringify(db));
+    }
+
+    function updateStatus(message) {
+      statusText.textContent = message;
+    }
+
+    function saveProject() {
+      project.updatedAt = nowIso();
+      db.projects[project.id] = project;
+      db.lastProjectId = project.id;
+      saveDb(db);
+      updateStatus(`Saved: ${new Date(project.updatedAt).toLocaleTimeString("ja-JP")}`);
+    }
+
+    function scheduleSave() {
+      updateStatus("Saving...");
+      if (scheduleSave.timer) window.clearTimeout(scheduleSave.timer);
+      scheduleSave.timer = window.setTimeout(saveProject, 1200);
+    }
+
+    function escapeHtml(text) {
+      return String(text || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function protect(text, renderer, store) {
+      return text.replace(renderer.regex, (...args) => {
+        const html = renderer.toHtml(...args);
+        const id = store.length;
+        store.push(html);
+        return `@@${renderer.key}${id}@@`;
+      });
+    }
+
+    function restoreProtected(text, store) {
+      return text.replace(/@@[A-Z]+(\d+)@@/g, (_m, id) => store[Number(id)] || "");
+    }
+
+    function renderInline(rawLine) {
+      const store = [];
+      let line = escapeHtml(rawLine);
+
+      line = protect(line, {
+        key: "CODE",
+        regex: /`([^`\n]+?)`/g,
+        toHtml: (_m, inner) => `<code><span class="md-token">\`</span>${inner}<span class="md-token">\`</span></code>`,
+      }, store);
+
+      line = protect(line, {
+        key: "LINK",
+        regex: /\[([^\]]+?)\]\(([^)]+?)\)/g,
+        toHtml: (_m, label, url) => `<a href="${url}" target="_blank" rel="noopener"><span class="md-token">[</span>${label}<span class="md-token">]</span><span class="md-token">(</span>${url}<span class="md-token">)</span></a>`,
+      }, store);
+
+      line = protect(line, {
+        key: "BOLD",
+        regex: /\*\*([^*\n]+?)\*\*/g,
+        toHtml: (_m, inner) => `<strong><span class="md-token">**</span>${inner}<span class="md-token">**</span></strong>`,
+      }, store);
+
+      line = protect(line, {
+        key: "ITAL",
+        regex: /\*([^*\n]+?)\*/g,
+        toHtml: (_m, inner) => `<em><span class="md-token">*</span>${inner}<span class="md-token">*</span></em>`,
+      }, store);
+
+      return restoreProtected(line, store);
+    }
+
+    function renderLine(line) {
+      const headingMatch = line.match(/^(#{1,6})(\s+)(.*)$/);
+      if (headingMatch) {
+        const level = Math.min(3, headingMatch[1].length);
+        const token = `${escapeHtml(headingMatch[1])}${escapeHtml(headingMatch[2])}`;
+        const content = renderInline(headingMatch[3]);
+        return `<div class="line h${level}"><span class="md-token">${token}</span>${content || ""}</div>`;
+      }
+
+      const quoteMatch = line.match(/^(>\s?)(.*)$/);
+      if (quoteMatch) {
+        return `<div class="line quote"><span class="md-token">${escapeHtml(quoteMatch[1])}</span>${renderInline(quoteMatch[2])}</div>`;
+      }
+
+      const ulistMatch = line.match(/^([-*]\s+)(.*)$/);
+      if (ulistMatch) {
+        return `<div class="line list"><span class="md-token">${escapeHtml(ulistMatch[1])}</span>${renderInline(ulistMatch[2])}</div>`;
+      }
+
+      const olistMatch = line.match(/^(\d+\.\s+)(.*)$/);
+      if (olistMatch) {
+        return `<div class="line olist"><span class="md-token">${escapeHtml(olistMatch[1])}</span>${renderInline(olistMatch[2])}</div>`;
+      }
+
+      if (line === "") {
+        return `<div class="line"><br></div>`;
+      }
+
+      return `<div class="line">${renderInline(line)}</div>`;
+    }
+
+    function renderSource() {
+      const lines = normalizeText(sourceText).split("\n");
+      return lines.map(renderLine).join("");
+    }
+
+    function getLineElements() {
+      return Array.from(hybridEditor.querySelectorAll(".line"));
+    }
+
+    function extractSourceFromEditor() {
+      const lines = getLineElements();
+      if (!lines.length) return "";
+      return lines.map((line) => normalizeText((line.textContent || "").replace(/\u00A0/g, " "))).join("\n");
+    }
+
+    function buildLineStarts(text) {
+      const lines = normalizeText(text).split("\n");
+      const starts = [];
+      let total = 0;
+      for (let i = 0; i < lines.length; i += 1) {
+        starts.push(total);
+        total += lines[i].length;
+        if (i < lines.length - 1) total += 1;
+      }
+      return { lines, starts, total };
+    }
+
+    function closestLineElement(node) {
+      if (!node) return null;
+      if (node.nodeType === Node.ELEMENT_NODE) {
+        if (node.classList && node.classList.contains("line")) return node;
+        if (typeof node.closest === "function") return node.closest(".line");
+        return null;
+      }
+      if (node.parentElement) return node.parentElement.closest(".line");
+      return null;
+    }
+
+    function pointToOffset(container, offset, lineMap) {
+      const lineEls = getLineElements();
+      if (!lineEls.length) return 0;
+
+      let lineEl = closestLineElement(container);
+      if (!lineEl && container === hybridEditor) {
+        const childIndex = Math.max(0, Math.min(offset - 1, hybridEditor.childNodes.length - 1));
+        const child = hybridEditor.childNodes[childIndex];
+        lineEl = closestLineElement(child) || lineEls[lineEls.length - 1];
+      }
+      if (!lineEl) return lineMap.total;
+
+      const lineIndex = lineEls.indexOf(lineEl);
+      if (lineIndex < 0) return lineMap.total;
+
+      const localRange = document.createRange();
+      localRange.selectNodeContents(lineEl);
+      try {
+        localRange.setEnd(container, offset);
+      } catch (_error) {
+        return lineMap.starts[lineIndex] + lineMap.lines[lineIndex].length;
+      }
+
+      const localLen = normalizeText(localRange.toString().replace(/\u00A0/g, " ")).length;
+      const capped = Math.max(0, Math.min(localLen, lineMap.lines[lineIndex].length));
+      return lineMap.starts[lineIndex] + capped;
+    }
+
+    function getSelectionOffsets() {
+      const lineMap = buildLineStarts(sourceText);
+      const sel = window.getSelection();
+      if (!sel || sel.rangeCount === 0) {
+        return { start: lineMap.total, end: lineMap.total };
+      }
+      const range = sel.getRangeAt(0);
+      return {
+        start: pointToOffset(range.startContainer, range.startOffset, lineMap),
+        end: pointToOffset(range.endContainer, range.endOffset, lineMap),
+      };
+    }
+
+    function lineOffsetToDom(lineEl, offsetInLine) {
+      const walker = document.createTreeWalker(lineEl, NodeFilter.SHOW_TEXT);
+      let node = walker.nextNode();
+      let remaining = offsetInLine;
+      while (node) {
+        const len = normalizeText((node.nodeValue || "").replace(/\u00A0/g, " ")).length;
+        if (remaining <= len) {
+          return { node, offset: remaining };
+        }
+        remaining -= len;
+        node = walker.nextNode();
+      }
+      return { node: lineEl, offset: lineEl.childNodes.length };
+    }
+
+    function absoluteOffsetToPoint(targetOffset) {
+      const lineMap = buildLineStarts(sourceText);
+      const lineEls = getLineElements();
+      if (!lineEls.length) return { node: hybridEditor, offset: 0 };
+      const safe = Math.max(0, Math.min(targetOffset, lineMap.total));
+
+      for (let i = 0; i < lineMap.lines.length; i += 1) {
+        const lineStart = lineMap.starts[i];
+        const lineLen = lineMap.lines[i].length;
+        const isLast = i === lineMap.lines.length - 1;
+        const lineEndWithBreak = lineStart + lineLen + (isLast ? 0 : 1);
+        if (safe <= lineEndWithBreak || isLast) {
+          const offsetInLine = Math.max(0, Math.min(safe - lineStart, lineLen));
+          const lineEl = lineEls[i] || lineEls[lineEls.length - 1];
+          return lineOffsetToDom(lineEl, offsetInLine);
+        }
+      }
+
+      const fallbackLine = lineEls[lineEls.length - 1];
+      return { node: fallbackLine, offset: fallbackLine.childNodes.length };
+    }
+
+    function setSelectionByOffsets(start, end) {
+      const sel = window.getSelection();
+      if (!sel) return;
+      const range = document.createRange();
+      const startPoint = absoluteOffsetToPoint(start);
+      const endPoint = absoluteOffsetToPoint(end);
+
+      try {
+        range.setStart(startPoint.node, startPoint.offset);
+        range.setEnd(endPoint.node, endPoint.offset);
+      } catch (_error) {
+        range.selectNodeContents(hybridEditor);
+        range.collapse(false);
+      }
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
+
+    function syncFromEditorInput() {
+      if (isRendering || isComposing) return;
+      const selection = getSelectionOffsets();
+      sourceText = normalizeText(extractSourceFromEditor());
+      project.content = sourceText;
+      const html = renderSource();
+
+      isRendering = true;
+      hybridEditor.innerHTML = html;
+      setSelectionByOffsets(selection.start, selection.end);
+      isRendering = false;
+
+      scheduleSave();
+    }
+
+    function applyWrap(prefix, suffix) {
+      const selection = getSelectionOffsets();
+      const start = Math.min(selection.start, selection.end);
+      const end = Math.max(selection.start, selection.end);
+      const selected = sourceText.slice(start, end);
+
+      sourceText = `${sourceText.slice(0, start)}${prefix}${selected}${suffix}${sourceText.slice(end)}`;
+      project.content = sourceText;
+
+      isRendering = true;
+      hybridEditor.innerHTML = renderSource();
+      setSelectionByOffsets(start + prefix.length, start + prefix.length + selected.length);
+      isRendering = false;
+
+      scheduleSave();
+    }
+
+    function applyLinePrefix(prefix) {
+      const selection = getSelectionOffsets();
+      const start = Math.min(selection.start, selection.end);
+      const end = Math.max(selection.start, selection.end);
+
+      const lineStart = sourceText.lastIndexOf("\n", Math.max(0, start - 1)) + 1;
+      const lineEndIndex = sourceText.indexOf("\n", end);
+      const lineEnd = lineEndIndex === -1 ? sourceText.length : lineEndIndex;
+      const block = sourceText.slice(lineStart, lineEnd);
+      const replaced = block.split("\n").map((line) => prefix + line).join("\n");
+
+      sourceText = `${sourceText.slice(0, lineStart)}${replaced}${sourceText.slice(lineEnd)}`;
+      project.content = sourceText;
+
+      isRendering = true;
+      hybridEditor.innerHTML = renderSource();
+      setSelectionByOffsets(lineStart, lineStart + replaced.length);
+      isRendering = false;
+
+      scheduleSave();
+    }
+
+    function insertLink() {
+      const url = window.prompt("URL");
+      if (!url) return;
+      const selection = getSelectionOffsets();
+      const start = Math.min(selection.start, selection.end);
+      const end = Math.max(selection.start, selection.end);
+      const selected = sourceText.slice(start, end) || "link";
+      const next = `[${selected}](${url})`;
+
+      sourceText = `${sourceText.slice(0, start)}${next}${sourceText.slice(end)}`;
+      project.content = sourceText;
+
+      isRendering = true;
+      hybridEditor.innerHTML = renderSource();
+      setSelectionByOffsets(start, start + next.length);
+      isRendering = false;
+
+      scheduleSave();
+    }
+
+    function downloadTextFile(filename, content, mimeType) {
+      const blob = new Blob([content], { type: mimeType });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    const db = loadDb();
+    let projectId = params.get("id") || db.lastProjectId;
+    project = projectId ? db.projects[projectId] : null;
+
+    if (!project) {
+      project = createProject(DEFAULT_NAME);
+      db.projects[project.id] = project;
+      projectId = project.id;
+    }
+
+    db.lastProjectId = project.id;
+    saveDb(db);
+
+    if (project.id !== params.get("id")) {
+      params.set("id", project.id);
+      const nextUrl = `${window.location.pathname}?${params.toString()}`;
+      window.history.replaceState({}, "", nextUrl);
+    }
+
+    projectNameInput.value = project.name || DEFAULT_NAME;
+    fileNameInput.value = project.fileName || DEFAULT_FILE_NAME;
+    document.title = `${projectNameInput.value} | Baram Docs`;
+
+    sourceText = normalizeText(project.content || DEFAULT_CONTENT);
+    hybridEditor.innerHTML = renderSource();
+
+    backBtn.addEventListener("click", () => {
+      window.location.href = "../index-new.html";
+    });
+
+    projectNameInput.addEventListener("input", () => {
+      project.name = projectNameInput.value.trim() || DEFAULT_NAME;
+      document.title = `${project.name} | Baram Docs`;
+      scheduleSave();
+    });
+
+    fileNameInput.addEventListener("input", () => {
+      project.fileName = normalizeFileName(fileNameInput.value);
+      scheduleSave();
+    });
+
+    fileNameInput.addEventListener("blur", () => {
+      fileNameInput.value = normalizeFileName(fileNameInput.value);
+    });
+
+    hybridEditor.addEventListener("compositionstart", () => {
+      isComposing = true;
+    });
+
+    hybridEditor.addEventListener("compositionend", () => {
+      isComposing = false;
+      syncFromEditorInput();
+    });
+
+    hybridEditor.addEventListener("input", syncFromEditorInput);
+
+    document.querySelectorAll(".fmt-btn").forEach((button) => {
+      button.addEventListener("click", () => {
+        const kind = button.dataset.kind;
+        if (kind === "wrap") {
+          applyWrap(button.dataset.prefix || "", button.dataset.suffix || "");
+          return;
+        }
+        applyLinePrefix(button.dataset.prefix || "");
+      });
+    });
+
+    insertLinkBtn.addEventListener("click", insertLink);
+
+    downloadBtn.addEventListener("click", () => {
+      const filename = normalizeFileName(project.fileName || fileNameInput.value);
+      project.fileName = filename;
+      fileNameInput.value = filename;
+      project.content = sourceText;
+      scheduleSave();
+      downloadTextFile(filename, sourceText || "", "text/markdown;charset=utf-8");
+    });
+
+    updateStatus("Ready");
+  </script>
+</body>
+
+</html>

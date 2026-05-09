@@ -1,0 +1,760 @@
+<!doctype html>
+<html lang="ja">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Baram Sheets</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+    }
+
+    .page {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 10px;
+      overflow: hidden;
+    }
+
+    .topbar,
+    .toolbar,
+    .sheet-actions,
+    .mode-switch,
+    .left-controls,
+    .right-controls,
+    .statusbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .topbar {
+      justify-content: space-between;
+      align-items: end;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 180px;
+    }
+
+    .field input {
+      width: 100%;
+    }
+
+    .toolbar {
+      justify-content: space-between;
+      align-items: start;
+    }
+
+    .formula {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 220px;
+      flex: 1;
+    }
+
+    .formula input {
+      width: 100%;
+    }
+
+    .workspace {
+      flex: 1;
+      min-height: 0;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      overflow: hidden;
+    }
+
+    .table-pane,
+    .source-pane {
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      overflow: hidden;
+    }
+
+    .table-wrap {
+      flex: 1;
+      min-height: 0;
+      overflow: auto;
+    }
+
+    table {
+      width: max-content;
+      min-width: 100%;
+      table-layout: fixed;
+    }
+
+    thead th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+
+    td,
+    th {
+      min-width: 84px;
+      padding: 0;
+      vertical-align: top;
+    }
+
+    th.row-header,
+    th.corner {
+      min-width: 48px;
+      width: 48px;
+    }
+
+    th.row-header {
+      position: sticky;
+      left: 0;
+      z-index: 1;
+    }
+
+    th.corner {
+      position: sticky;
+      left: 0;
+      top: 0;
+      z-index: 3;
+    }
+
+    td input {
+      width: 100%;
+      min-height: 28px;
+    }
+
+    #csvSource {
+      flex: 1;
+      width: 100%;
+      min-height: 0;
+      resize: none;
+      overflow: auto;
+    }
+
+    .statusbar {
+      min-height: 24px;
+      justify-content: space-between;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media (max-width: 900px) {
+      .topbar {
+        align-items: stretch;
+      }
+
+      .left-controls,
+      .right-controls,
+      .sheet-actions,
+      .formula {
+        width: 100%;
+      }
+
+      .field {
+        min-width: 140px;
+        flex: 1;
+      }
+
+      td,
+      th {
+        min-width: 72px;
+      }
+
+      th.row-header,
+      th.corner {
+        min-width: 40px;
+        width: 40px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="page">
+    <header class="topbar">
+      <div class="left-controls">
+        <button type="button" id="backBtn">一覧へ戻る</button>
+        <label class="field">
+          <span>Sheet Name</span>
+          <input id="projectName" type="text" />
+        </label>
+      </div>
+
+      <div class="right-controls">
+        <label class="field">
+          <span>File Name</span>
+          <input id="fileName" type="text" />
+        </label>
+        <button type="button" id="downloadBtn">.csv ダウンロード</button>
+      </div>
+    </header>
+
+    <section class="toolbar">
+      <div class="mode-switch" role="group" aria-label="sheet mode">
+        <button type="button" id="tableModeBtn">Table</button>
+        <button type="button" id="csvModeBtn">CSV</button>
+      </div>
+
+      <div class="sheet-actions">
+        <button type="button" id="addRowBtn">+ Row</button>
+        <button type="button" id="addColBtn">+ Col</button>
+        <button type="button" id="deleteRowBtn">- Row</button>
+        <button type="button" id="deleteColBtn">- Col</button>
+      </div>
+
+      <label class="formula">
+        <span>Cell</span>
+        <input id="formulaInput" type="text" />
+      </label>
+    </section>
+
+    <section class="workspace">
+      <section class="table-pane" id="tablePane">
+        <div class="table-wrap">
+          <table id="sheetTable"></table>
+        </div>
+      </section>
+
+      <section class="source-pane hidden" id="sourcePane">
+        <textarea id="csvSource" spellcheck="false"></textarea>
+      </section>
+    </section>
+
+    <footer class="statusbar">
+      <span id="statusText">Ready</span>
+      <span id="sheetStats">Rows: 0 / Cols: 0</span>
+    </footer>
+  </main>
+
+  <script>
+    const DB_KEY = "baram-sheets-v1";
+    const DEFAULT_NAME = "Baram Sheet";
+    const DEFAULT_FILE_NAME = "sheet.csv";
+    const DEFAULT_CONTENT = "name,value\nexample,1\n";
+
+    const MIN_ROWS = 50;
+    const MIN_COLS = 26;
+
+    const params = new URLSearchParams(window.location.search);
+
+    const backBtn = document.getElementById("backBtn");
+    const projectNameInput = document.getElementById("projectName");
+    const fileNameInput = document.getElementById("fileName");
+    const downloadBtn = document.getElementById("downloadBtn");
+
+    const tableModeBtn = document.getElementById("tableModeBtn");
+    const csvModeBtn = document.getElementById("csvModeBtn");
+    const tablePane = document.getElementById("tablePane");
+    const sourcePane = document.getElementById("sourcePane");
+
+    const addRowBtn = document.getElementById("addRowBtn");
+    const addColBtn = document.getElementById("addColBtn");
+    const deleteRowBtn = document.getElementById("deleteRowBtn");
+    const deleteColBtn = document.getElementById("deleteColBtn");
+
+    const formulaInput = document.getElementById("formulaInput");
+    const sheetTable = document.getElementById("sheetTable");
+    const csvSource = document.getElementById("csvSource");
+
+    const statusText = document.getElementById("statusText");
+    const sheetStats = document.getElementById("sheetStats");
+
+    let mode = "table";
+    let matrix = [];
+    let activeCell = { row: 0, col: 0 };
+    let project = null;
+
+    function createId() {
+      if (window.crypto && typeof window.crypto.randomUUID === "function") {
+        return window.crypto.randomUUID();
+      }
+      return `id-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    }
+
+    function nowIso() {
+      return new Date().toISOString();
+    }
+
+    function normalizeFileName(name) {
+      const value = (name || "").trim();
+      if (!value) return DEFAULT_FILE_NAME;
+      return value.toLowerCase().endsWith(".csv") ? value : `${value}.csv`;
+    }
+
+    function createProject(name) {
+      const now = nowIso();
+      return {
+        id: createId(),
+        name: name || DEFAULT_NAME,
+        fileName: DEFAULT_FILE_NAME,
+        content: DEFAULT_CONTENT,
+        createdAt: now,
+        updatedAt: now,
+      };
+    }
+
+    function loadDb() {
+      try {
+        const raw = localStorage.getItem(DB_KEY);
+        const parsed = raw ? JSON.parse(raw) : null;
+        if (!parsed || typeof parsed !== "object") {
+          return { projects: {}, lastProjectId: null };
+        }
+        if (!parsed.projects || typeof parsed.projects !== "object") {
+          parsed.projects = {};
+        }
+        if (!Object.prototype.hasOwnProperty.call(parsed, "lastProjectId")) {
+          parsed.lastProjectId = null;
+        }
+        return parsed;
+      } catch (_error) {
+        return { projects: {}, lastProjectId: null };
+      }
+    }
+
+    function saveDb(db) {
+      localStorage.setItem(DB_KEY, JSON.stringify(db));
+    }
+
+    function parseCsv(text) {
+      if (!text) return [];
+
+      const rows = [];
+      let row = [];
+      let field = "";
+      let inQuotes = false;
+
+      for (let i = 0; i < text.length; i += 1) {
+        const char = text[i];
+
+        if (inQuotes) {
+          if (char === '"') {
+            const next = text[i + 1];
+            if (next === '"') {
+              field += '"';
+              i += 1;
+            } else {
+              inQuotes = false;
+            }
+            continue;
+          }
+
+          field += char;
+          continue;
+        }
+
+        if (char === '"') {
+          inQuotes = true;
+          continue;
+        }
+
+        if (char === ",") {
+          row.push(field);
+          field = "";
+          continue;
+        }
+
+        if (char === "\n" || char === "\r") {
+          if (char === "\r" && text[i + 1] === "\n") i += 1;
+          row.push(field);
+          rows.push(row);
+          row = [];
+          field = "";
+          continue;
+        }
+
+        field += char;
+      }
+
+      row.push(field);
+      if (row.length > 1 || row[0] !== "" || text.endsWith(",")) {
+        rows.push(row);
+      }
+
+      return rows;
+    }
+
+    function matrixToCsvRows(rows) {
+      let lastRow = -1;
+      let lastCol = -1;
+
+      for (let r = 0; r < rows.length; r += 1) {
+        for (let c = 0; c < rows[r].length; c += 1) {
+          if (String(rows[r][c] ?? "") !== "") {
+            lastRow = Math.max(lastRow, r);
+            lastCol = Math.max(lastCol, c);
+          }
+        }
+      }
+
+      if (lastRow < 0 || lastCol < 0) {
+        return [[""]];
+      }
+
+      return rows.slice(0, lastRow + 1).map((row) => row.slice(0, lastCol + 1));
+    }
+
+    function serializeCsv(rows) {
+      const rawRows = matrixToCsvRows(rows && rows.length ? rows : [[""]]);
+      return rawRows
+        .map((row) => row.map((value) => {
+          const str = String(value ?? "");
+          if (/[",\n\r]/.test(str)) {
+            return `"${str.replace(/"/g, '""')}"`;
+          }
+          return str;
+        }).join(","))
+        .join("\r\n");
+    }
+
+    function normalizeMatrix(rows, minRows = MIN_ROWS, minCols = MIN_COLS) {
+      const normalized = (rows && rows.length)
+        ? rows.map((row) => Array.isArray(row) ? [...row] : [String(row ?? "")])
+        : [[""]];
+
+      const rowCount = Math.max(normalized.length, minRows);
+      const colCount = Math.max(
+        normalized.reduce((max, row) => Math.max(max, row.length), 0),
+        minCols
+      );
+
+      while (normalized.length < rowCount) {
+        normalized.push([]);
+      }
+
+      normalized.forEach((row) => {
+        while (row.length < colCount) {
+          row.push("");
+        }
+      });
+
+      return normalized;
+    }
+
+    function columnLabel(index) {
+      let value = index + 1;
+      let label = "";
+      while (value > 0) {
+        const mod = (value - 1) % 26;
+        label = String.fromCharCode(65 + mod) + label;
+        value = Math.floor((value - 1) / 26);
+      }
+      return label;
+    }
+
+    function updateStatus(message) {
+      statusText.textContent = message;
+    }
+
+    function updateStats() {
+      const rows = matrix.length;
+      const cols = matrix[0] ? matrix[0].length : 0;
+      sheetStats.textContent = `Rows: ${rows} / Cols: ${cols}`;
+    }
+
+    function syncSourceIfNeeded() {
+      if (mode === "csv") {
+        csvSource.value = serializeCsv(matrix);
+      }
+    }
+
+    function saveProject() {
+      project.content = serializeCsv(matrix);
+      project.updatedAt = nowIso();
+      db.projects[project.id] = project;
+      db.lastProjectId = project.id;
+      saveDb(db);
+      updateStatus(`Saved: ${new Date(project.updatedAt).toLocaleTimeString("ja-JP")}`);
+    }
+
+    function scheduleSave() {
+      updateStatus("Saving...");
+      if (scheduleSave.timer) window.clearTimeout(scheduleSave.timer);
+      scheduleSave.timer = window.setTimeout(saveProject, 220);
+    }
+
+    function ensureMatrixFromCurrentMode() {
+      if (mode === "csv") {
+        matrix = normalizeMatrix(parseCsv(csvSource.value));
+      }
+    }
+
+    function setMode(nextMode) {
+      mode = nextMode;
+      const isTable = mode === "table";
+
+      tableModeBtn.disabled = isTable;
+      csvModeBtn.disabled = !isTable;
+      tablePane.classList.toggle("hidden", !isTable);
+      sourcePane.classList.toggle("hidden", isTable);
+
+      if (isTable) {
+        matrix = normalizeMatrix(parseCsv(csvSource.value));
+        renderTable();
+      } else {
+        csvSource.value = serializeCsv(matrix);
+      }
+    }
+
+    function setActiveCell(row, col) {
+      activeCell = { row, col };
+      formulaInput.value = matrix[row]?.[col] ?? "";
+    }
+
+    function refreshActionAvailability() {
+      deleteRowBtn.disabled = matrix.length <= MIN_ROWS;
+      deleteColBtn.disabled = (matrix[0] ? matrix[0].length : 0) <= MIN_COLS;
+    }
+
+    function renderTable() {
+      matrix = normalizeMatrix(matrix);
+      sheetTable.innerHTML = "";
+
+      const cols = matrix[0].length;
+      const thead = document.createElement("thead");
+      const headRow = document.createElement("tr");
+
+      const corner = document.createElement("th");
+      corner.className = "corner";
+      corner.textContent = "#";
+      headRow.appendChild(corner);
+
+      for (let col = 0; col < cols; col += 1) {
+        const th = document.createElement("th");
+        th.textContent = columnLabel(col);
+        headRow.appendChild(th);
+      }
+
+      thead.appendChild(headRow);
+      sheetTable.appendChild(thead);
+
+      const tbody = document.createElement("tbody");
+      matrix.forEach((rowData, rowIndex) => {
+        const tr = document.createElement("tr");
+
+        const rowHeader = document.createElement("th");
+        rowHeader.className = "row-header";
+        rowHeader.textContent = String(rowIndex + 1);
+        tr.appendChild(rowHeader);
+
+        rowData.forEach((cellValue, colIndex) => {
+          const td = document.createElement("td");
+          const input = document.createElement("input");
+          input.type = "text";
+          input.value = cellValue ?? "";
+          input.dataset.row = String(rowIndex);
+          input.dataset.col = String(colIndex);
+
+          input.addEventListener("focus", () => {
+            setActiveCell(rowIndex, colIndex);
+          });
+
+          input.addEventListener("input", () => {
+            matrix[rowIndex][colIndex] = input.value;
+            if (activeCell.row === rowIndex && activeCell.col === colIndex) {
+              formulaInput.value = input.value;
+            }
+            updateStats();
+            syncSourceIfNeeded();
+            scheduleSave();
+          });
+
+          td.appendChild(input);
+          tr.appendChild(td);
+        });
+
+        tbody.appendChild(tr);
+      });
+
+      sheetTable.appendChild(tbody);
+      updateStats();
+      refreshActionAvailability();
+
+      const maxRow = Math.max(0, matrix.length - 1);
+      const maxCol = Math.max(0, matrix[0].length - 1);
+      activeCell.row = Math.min(activeCell.row, maxRow);
+      activeCell.col = Math.min(activeCell.col, maxCol);
+      formulaInput.value = matrix[activeCell.row][activeCell.col] ?? "";
+    }
+
+    function addRow() {
+      ensureMatrixFromCurrentMode();
+      const cols = matrix[0] ? matrix[0].length : MIN_COLS;
+      matrix.push(Array.from({ length: cols }, () => ""));
+      activeCell.row = matrix.length - 1;
+      activeCell.col = Math.min(activeCell.col, cols - 1);
+      renderTable();
+      syncSourceIfNeeded();
+      scheduleSave();
+    }
+
+    function addCol() {
+      ensureMatrixFromCurrentMode();
+      matrix.forEach((row) => row.push(""));
+      activeCell.col = matrix[0].length - 1;
+      renderTable();
+      syncSourceIfNeeded();
+      scheduleSave();
+    }
+
+    function deleteRow() {
+      ensureMatrixFromCurrentMode();
+      if (matrix.length <= MIN_ROWS) return;
+      const rowNo = activeCell.row + 1;
+      const ok = window.confirm(`Row ${rowNo} を削除しますか？`);
+      if (!ok) return;
+
+      matrix.splice(activeCell.row, 1);
+      activeCell.row = Math.max(0, activeCell.row - 1);
+      renderTable();
+      syncSourceIfNeeded();
+      scheduleSave();
+    }
+
+    function deleteCol() {
+      ensureMatrixFromCurrentMode();
+      const colCount = matrix[0] ? matrix[0].length : 0;
+      if (colCount <= MIN_COLS) return;
+
+      const colName = columnLabel(activeCell.col);
+      const ok = window.confirm(`Column ${colName} を削除しますか？`);
+      if (!ok) return;
+
+      matrix.forEach((row) => row.splice(activeCell.col, 1));
+      activeCell.col = Math.max(0, activeCell.col - 1);
+      renderTable();
+      syncSourceIfNeeded();
+      scheduleSave();
+    }
+
+    function downloadTextFile(filename, content, mimeType) {
+      const blob = new Blob([content], { type: mimeType });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    const db = loadDb();
+    let projectId = params.get("id") || db.lastProjectId;
+    project = projectId ? db.projects[projectId] : null;
+
+    if (!project) {
+      project = createProject(DEFAULT_NAME);
+      db.projects[project.id] = project;
+      projectId = project.id;
+    }
+
+    db.lastProjectId = project.id;
+    saveDb(db);
+
+    if (project.id !== params.get("id")) {
+      params.set("id", project.id);
+      const nextUrl = `${window.location.pathname}?${params.toString()}`;
+      window.history.replaceState({}, "", nextUrl);
+    }
+
+    projectNameInput.value = project.name || DEFAULT_NAME;
+    fileNameInput.value = project.fileName || DEFAULT_FILE_NAME;
+    document.title = `${projectNameInput.value} | Baram Sheets`;
+
+    matrix = normalizeMatrix(parseCsv(project.content || DEFAULT_CONTENT));
+    csvSource.value = serializeCsv(matrix);
+    renderTable();
+    setMode("table");
+
+    backBtn.addEventListener("click", () => {
+      window.location.href = "../index-new.html";
+    });
+
+    projectNameInput.addEventListener("input", () => {
+      project.name = projectNameInput.value.trim() || DEFAULT_NAME;
+      document.title = `${project.name} | Baram Sheets`;
+      scheduleSave();
+    });
+
+    fileNameInput.addEventListener("input", () => {
+      project.fileName = normalizeFileName(fileNameInput.value);
+      scheduleSave();
+    });
+
+    fileNameInput.addEventListener("blur", () => {
+      fileNameInput.value = normalizeFileName(fileNameInput.value);
+    });
+
+    tableModeBtn.addEventListener("click", () => {
+      setMode("table");
+      scheduleSave();
+    });
+
+    csvModeBtn.addEventListener("click", () => {
+      setMode("csv");
+      scheduleSave();
+    });
+
+    csvSource.addEventListener("input", () => {
+      if (mode !== "csv") return;
+      matrix = normalizeMatrix(parseCsv(csvSource.value));
+      updateStats();
+      refreshActionAvailability();
+      scheduleSave();
+    });
+
+    addRowBtn.addEventListener("click", addRow);
+    addColBtn.addEventListener("click", addCol);
+    deleteRowBtn.addEventListener("click", deleteRow);
+    deleteColBtn.addEventListener("click", deleteCol);
+
+    formulaInput.addEventListener("input", () => {
+      if (!matrix[activeCell.row] || matrix[activeCell.row][activeCell.col] === undefined) return;
+      matrix[activeCell.row][activeCell.col] = formulaInput.value;
+
+      if (mode === "table") {
+        const selector = `input[data-row="${activeCell.row}"][data-col="${activeCell.col}"]`;
+        const cellInput = sheetTable.querySelector(selector);
+        if (cellInput) cellInput.value = formulaInput.value;
+      }
+
+      syncSourceIfNeeded();
+      updateStats();
+      scheduleSave();
+    });
+
+    downloadBtn.addEventListener("click", () => {
+      ensureMatrixFromCurrentMode();
+      const filename = normalizeFileName(project.fileName || fileNameInput.value);
+      project.fileName = filename;
+      fileNameInput.value = filename;
+
+      const csv = serializeCsv(matrix);
+      project.content = csv;
+      csvSource.value = csv;
+      scheduleSave();
+      downloadTextFile(filename, csv, "text/csv;charset=utf-8");
+    });
+
+    updateStatus("Ready");
+  </script>
+</body>
+
+</html>

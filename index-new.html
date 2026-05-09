@@ -1,0 +1,580 @@
+<!doctype html>
+<html lang="ja">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Baram Workspace</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+    }
+
+    .page {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 12px;
+    }
+
+    .topbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: end;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .title-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .title-group h1,
+    .title-group p {
+      margin: 0;
+    }
+
+    .create-buttons,
+    .filters,
+    .view-switch,
+    .item-actions,
+    .item-meta,
+    .summary {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .filters {
+      display: grid;
+      grid-template-columns: minmax(180px, 1fr) auto auto;
+      gap: 8px;
+      align-items: end;
+    }
+
+    .filters input,
+    .filters select,
+    .filters button,
+    .create-buttons button,
+    .item-actions button,
+    .item-title input {
+      width: 100%;
+    }
+
+    .workspace {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .items {
+      flex: 1;
+      min-height: 0;
+      overflow: auto;
+    }
+
+    .items.view-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 10px;
+      align-content: start;
+    }
+
+    .items.view-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .item {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 8px;
+    }
+
+    .items.view-list .item {
+      display: grid;
+      grid-template-columns: minmax(220px, 2fr) minmax(120px, 1fr) minmax(180px, 1fr) auto;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .item-title {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 0;
+    }
+
+    .item-title input {
+      min-width: 0;
+    }
+
+    .empty {
+      min-height: 180px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding: 12px;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+    }
+
+    @media (max-width: 900px) {
+      .filters {
+        grid-template-columns: 1fr;
+      }
+
+      .items.view-list .item {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="page">
+    <header class="topbar">
+      <div class="title-group">
+        <h1>Baram Workspace</h1>
+        <p>Code / Docs / Sheets をまとめて管理</p>
+      </div>
+      <div class="create-buttons" role="group" aria-label="create new">
+        <button type="button" data-create="code">+ Code</button>
+        <button type="button" data-create="docs">+ Docs</button>
+        <button type="button" data-create="sheets">+ Sheets</button>
+      </div>
+    </header>
+
+    <section class="filters" aria-label="filters">
+      <label>
+        <span class="sr-only">Search</span>
+        <input id="searchInput" type="search" placeholder="Search files" />
+      </label>
+
+      <label>
+        <span class="sr-only">Type filter</span>
+        <select id="typeFilter">
+          <option value="all">All</option>
+          <option value="code">Code</option>
+          <option value="docs">Docs</option>
+          <option value="sheets">Sheets</option>
+        </select>
+      </label>
+
+      <div class="view-switch" role="group" aria-label="view switch">
+        <button type="button" data-view="grid" id="gridBtn">Grid</button>
+        <button type="button" data-view="list" id="listBtn">List</button>
+      </div>
+    </section>
+
+    <section class="workspace">
+      <div class="summary">
+        <span id="totalCount">0 items</span>
+        <span id="codeCount">Code: 0</span>
+        <span id="docsCount">Docs: 0</span>
+        <span id="sheetsCount">Sheets: 0</span>
+        <span id="latestUpdated">Updated: -</span>
+      </div>
+
+      <div id="items" class="items view-grid"></div>
+    </section>
+  </main>
+
+  <script>
+    const APP_CONFIGS = {
+      code: {
+        key: "code",
+        title: "Code",
+        dbKey: "baram-projects-v1",
+        legacyKey: "baram-playground",
+        editPath: "edit.html",
+        defaultName: "Baram Live Preview",
+        createProject: createCodeProject,
+      },
+      docs: {
+        key: "docs",
+        title: "Docs",
+        dbKey: "baram-docs-v1",
+        editPath: "docs/edit.html",
+        defaultName: "Baram Doc",
+        createProject: createDocsProject,
+      },
+      sheets: {
+        key: "sheets",
+        title: "Sheets",
+        dbKey: "baram-sheets-v1",
+        editPath: "sheets/edit.html",
+        defaultName: "Baram Sheet",
+        createProject: createSheetsProject,
+      },
+    };
+
+    const VIEW_KEY = "baram-hub-view";
+    const DEFAULT_CODE_CONTENT = {
+      html: "<h1>Hello Baram</h1>\n<p>Start building.</p>\n",
+      css: "body {\n  margin: 0;\n  padding: 16px;\n}\n",
+      js: "console.log('Baram Code ready');\n",
+    };
+
+    const DEFAULT_DOC_CONTENT = "# New Document\n\nWrite your markdown here.\n";
+    const DEFAULT_SHEET_CONTENT = "name,value\nexample,1\n";
+
+    const state = {
+      query: "",
+      type: "all",
+      view: localStorage.getItem(VIEW_KEY) || "grid",
+    };
+
+    function createId() {
+      if (window.crypto && typeof window.crypto.randomUUID === "function") {
+        return window.crypto.randomUUID();
+      }
+      return `id-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    }
+
+    function nowIso() {
+      return new Date().toISOString();
+    }
+
+    function createCodeProject(name) {
+      const now = nowIso();
+      const htmlFile = { id: createId(), name: "index.html", content: DEFAULT_CODE_CONTENT.html };
+      const cssFile = { id: createId(), name: "styles.css", content: DEFAULT_CODE_CONTENT.css };
+      const jsFile = { id: createId(), name: "app.js", content: DEFAULT_CODE_CONTENT.js };
+
+      return {
+        id: createId(),
+        name: name || APP_CONFIGS.code.defaultName,
+        createdAt: now,
+        updatedAt: now,
+        files: {
+          html: [htmlFile],
+          css: [cssFile],
+          js: [jsFile],
+        },
+        active: {
+          html: htmlFile.id,
+          css: cssFile.id,
+          js: jsFile.id,
+        },
+        settings: {
+          autoUpdate: true,
+          cssHot: true,
+          previewLayout: "right",
+          editorLayout: "block",
+          filesCollapsed: false,
+          groupCollapsed: { html: false, css: false, js: false },
+          editorSizes: { block: {}, flex: {} },
+          previewSize: { right: null, bottom: null },
+        },
+      };
+    }
+
+    function createDocsProject(name) {
+      const now = nowIso();
+      return {
+        id: createId(),
+        name: name || APP_CONFIGS.docs.defaultName,
+        fileName: "note.md",
+        content: DEFAULT_DOC_CONTENT,
+        createdAt: now,
+        updatedAt: now,
+      };
+    }
+
+    function createSheetsProject(name) {
+      const now = nowIso();
+      return {
+        id: createId(),
+        name: name || APP_CONFIGS.sheets.defaultName,
+        fileName: "sheet.csv",
+        content: DEFAULT_SHEET_CONTENT,
+        createdAt: now,
+        updatedAt: now,
+      };
+    }
+
+    function loadDb(dbKey) {
+      try {
+        const raw = localStorage.getItem(dbKey);
+        const parsed = raw ? JSON.parse(raw) : null;
+        if (!parsed || typeof parsed !== "object") {
+          return { projects: {}, lastProjectId: null };
+        }
+        if (!parsed.projects || typeof parsed.projects !== "object") {
+          parsed.projects = {};
+        }
+        if (!Object.prototype.hasOwnProperty.call(parsed, "lastProjectId")) {
+          parsed.lastProjectId = null;
+        }
+        return parsed;
+      } catch (_error) {
+        return { projects: {}, lastProjectId: null };
+      }
+    }
+
+    function saveDb(dbKey, db) {
+      localStorage.setItem(dbKey, JSON.stringify(db));
+    }
+
+    function migrateLegacyCodeDb(db) {
+      if (Object.keys(db.projects || {}).length > 0) return db;
+      const legacyRaw = localStorage.getItem(APP_CONFIGS.code.legacyKey);
+      if (!legacyRaw) return db;
+
+      try {
+        const legacy = JSON.parse(legacyRaw);
+        const project = createCodeProject(APP_CONFIGS.code.defaultName);
+        project.files.html[0].content = legacy.html || project.files.html[0].content;
+        project.files.css[0].content = legacy.css || project.files.css[0].content;
+        project.files.js[0].content = legacy.js || project.files.js[0].content;
+        project.files.css[0].name = legacy.cssName || project.files.css[0].name;
+        project.files.js[0].name = legacy.jsName || project.files.js[0].name;
+        project.settings.autoUpdate = legacy.autoUpdate ?? true;
+        project.settings.cssHot = legacy.cssHot ?? true;
+        project.settings.previewLayout = legacy.layout || "right";
+        db.projects[project.id] = project;
+        db.lastProjectId = project.id;
+      } catch (_error) {
+        return db;
+      }
+      return db;
+    }
+
+    const dbByApp = {
+      code: migrateLegacyCodeDb(loadDb(APP_CONFIGS.code.dbKey)),
+      docs: loadDb(APP_CONFIGS.docs.dbKey),
+      sheets: loadDb(APP_CONFIGS.sheets.dbKey),
+    };
+
+    const searchInput = document.getElementById("searchInput");
+    const typeFilter = document.getElementById("typeFilter");
+    const itemsEl = document.getElementById("items");
+    const totalCountEl = document.getElementById("totalCount");
+    const codeCountEl = document.getElementById("codeCount");
+    const docsCountEl = document.getElementById("docsCount");
+    const sheetsCountEl = document.getElementById("sheetsCount");
+    const latestUpdatedEl = document.getElementById("latestUpdated");
+    const gridBtn = document.getElementById("gridBtn");
+    const listBtn = document.getElementById("listBtn");
+
+    function saveAppDb(appKey) {
+      const config = APP_CONFIGS[appKey];
+      saveDb(config.dbKey, dbByApp[appKey]);
+    }
+
+    function formatDate(isoString) {
+      if (!isoString) return "-";
+      const date = new Date(isoString);
+      if (Number.isNaN(date.getTime())) return "-";
+      return date.toLocaleString("ja-JP");
+    }
+
+    function collectItems() {
+      const output = [];
+      Object.keys(APP_CONFIGS).forEach((appKey) => {
+        const config = APP_CONFIGS[appKey];
+        const projects = Object.values(dbByApp[appKey].projects || {});
+        projects.forEach((project) => {
+          output.push({ appKey, config, project });
+        });
+      });
+      return output;
+    }
+
+    function updateSummary(allItems) {
+      const codeCount = allItems.filter((item) => item.appKey === "code").length;
+      const docsCount = allItems.filter((item) => item.appKey === "docs").length;
+      const sheetsCount = allItems.filter((item) => item.appKey === "sheets").length;
+
+      totalCountEl.textContent = `${allItems.length} items`;
+      codeCountEl.textContent = `Code: ${codeCount}`;
+      docsCountEl.textContent = `Docs: ${docsCount}`;
+      sheetsCountEl.textContent = `Sheets: ${sheetsCount}`;
+
+      const latest = allItems
+        .map((item) => item.project.updatedAt)
+        .filter(Boolean)
+        .sort()
+        .pop();
+
+      latestUpdatedEl.textContent = `Updated: ${latest ? formatDate(latest) : "-"}`;
+    }
+
+    function openItem(appKey, projectId) {
+      const config = APP_CONFIGS[appKey];
+      const db = dbByApp[appKey];
+      db.lastProjectId = projectId;
+      saveAppDb(appKey);
+      window.location.href = `${config.editPath}?id=${encodeURIComponent(projectId)}`;
+    }
+
+    function updateView() {
+      itemsEl.classList.toggle("view-grid", state.view === "grid");
+      itemsEl.classList.toggle("view-list", state.view === "list");
+      gridBtn.disabled = state.view === "grid";
+      listBtn.disabled = state.view === "list";
+      localStorage.setItem(VIEW_KEY, state.view);
+    }
+
+    function render() {
+      const allItems = collectItems();
+      updateSummary(allItems);
+
+      const query = state.query.trim().toLowerCase();
+      let filtered = allItems.filter((item) => {
+        if (state.type !== "all" && item.appKey !== state.type) return false;
+        if (!query) return true;
+        const name = String(item.project.name || "").toLowerCase();
+        const typeName = String(item.config.title || "").toLowerCase();
+        return name.includes(query) || typeName.includes(query);
+      });
+
+      filtered = filtered.sort((a, b) => (b.project.updatedAt || "").localeCompare(a.project.updatedAt || ""));
+
+      itemsEl.innerHTML = "";
+      updateView();
+
+      if (!filtered.length) {
+        const empty = document.createElement("div");
+        empty.className = "empty";
+        empty.textContent = "No items";
+        itemsEl.appendChild(empty);
+        return;
+      }
+
+      filtered.forEach(({ appKey, config, project }) => {
+        const item = document.createElement("article");
+        item.className = "item";
+
+        const title = document.createElement("div");
+        title.className = "item-title";
+
+        const label = document.createElement("label");
+        label.className = "sr-only";
+        label.setAttribute("for", `${appKey}-${project.id}`);
+        label.textContent = `${config.title} name`;
+
+        const nameInput = document.createElement("input");
+        nameInput.id = `${appKey}-${project.id}`;
+        nameInput.type = "text";
+        nameInput.value = project.name || config.defaultName;
+        nameInput.addEventListener("input", () => {
+          project.name = nameInput.value.trim() || config.defaultName;
+          project.updatedAt = nowIso();
+          dbByApp[appKey].projects[project.id] = project;
+          saveAppDb(appKey);
+          updateSummary(collectItems());
+        });
+
+        title.appendChild(label);
+        title.appendChild(nameInput);
+
+        const typeMeta = document.createElement("div");
+        typeMeta.className = "item-meta";
+        typeMeta.textContent = config.title;
+
+        const updated = document.createElement("div");
+        updated.className = "item-meta";
+        updated.textContent = formatDate(project.updatedAt);
+
+        const actions = document.createElement("div");
+        actions.className = "item-actions";
+
+        const openBtn = document.createElement("button");
+        openBtn.type = "button";
+        openBtn.textContent = "Open";
+        openBtn.addEventListener("click", () => openItem(appKey, project.id));
+
+        const deleteBtn = document.createElement("button");
+        deleteBtn.type = "button";
+        deleteBtn.textContent = "Delete";
+        deleteBtn.addEventListener("click", () => {
+          const ok = window.confirm(`${project.name || config.defaultName} を削除しますか？`);
+          if (!ok) return;
+          delete dbByApp[appKey].projects[project.id];
+          if (dbByApp[appKey].lastProjectId === project.id) {
+            dbByApp[appKey].lastProjectId = null;
+          }
+          saveAppDb(appKey);
+          render();
+        });
+
+        actions.appendChild(openBtn);
+        actions.appendChild(deleteBtn);
+
+        item.appendChild(title);
+        item.appendChild(typeMeta);
+        item.appendChild(updated);
+        item.appendChild(actions);
+        itemsEl.appendChild(item);
+      });
+    }
+
+    function createNew(appKey) {
+      const config = APP_CONFIGS[appKey];
+      const db = dbByApp[appKey];
+      const project = config.createProject(config.defaultName);
+      db.projects[project.id] = project;
+      db.lastProjectId = project.id;
+      saveAppDb(appKey);
+      openItem(appKey, project.id);
+    }
+
+    searchInput.addEventListener("input", () => {
+      state.query = searchInput.value;
+      render();
+    });
+
+    typeFilter.addEventListener("change", () => {
+      state.type = typeFilter.value;
+      render();
+    });
+
+    gridBtn.addEventListener("click", () => {
+      state.view = "grid";
+      updateView();
+      render();
+    });
+
+    listBtn.addEventListener("click", () => {
+      state.view = "list";
+      updateView();
+      render();
+    });
+
+    document.querySelectorAll("[data-create]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const appKey = button.getAttribute("data-create");
+        createNew(appKey);
+      });
+    });
+
+    updateView();
+    render();
+  </script>
+</body>
+
+</html>
