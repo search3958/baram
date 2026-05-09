@@ -3,18 +3,30 @@
 
 <head>
   <meta charset="utf-8" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=LINE+Seed+JP:wght@400;700&display=swap" rel="stylesheet">
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Baram Workspace</title>
+  <title>Baram</title>
   <style>
     * {
       box-sizing: border-box;
+      font-family: "LINE Seed JP", sans-serif;
+          line-height: 1 !important;
     }
 
     body {
       margin: 0;
       min-height: 100vh;
+      background:#f6f6f6;
+      padding-top:120px;
     }
-
+    button{
+      padding:8px 16px;
+      border:none;
+      border-radius:18px;
+          corner-shape: superellipse(1.6);
+    }
     .page {
       min-height: 100vh;
       display: flex;
@@ -29,6 +41,13 @@
       align-items: end;
       justify-content: space-between;
       gap: 8px;
+      position:fixed;
+      padding:16px;
+      top:0;
+      left:0;
+      width:100%;
+      background:#fff9;
+      backdrop-filter:blur(10px);
     }
 
     .title-group {
@@ -49,7 +68,7 @@
     .item-meta,
     .summary {
       display: flex;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
       align-items: center;
       gap: 8px;
     }
@@ -65,7 +84,6 @@
     .filters select,
     .filters button,
     .create-buttons button,
-    .item-actions button,
     .item-title input {
       width: 100%;
     }
@@ -82,6 +100,7 @@
       flex: 1;
       min-height: 0;
       overflow: auto;
+      
     }
 
     .items.view-grid {
@@ -102,6 +121,11 @@
       flex-direction: column;
       gap: 8px;
       padding: 8px;
+      background:#fff;
+          corner-shape: superellipse(1.8);
+          border-radius:40px;
+      padding:12px;
+      box-shadow:0 4px 16px #0001;
     }
 
     .items.view-list .item {
@@ -141,6 +165,14 @@
       white-space: nowrap;
     }
 
+    #searchInput,#typeFilter{
+      background:#e4e4e4;
+      border:none;
+      padding:16px;
+      border-radius:100px;
+      outline:none;
+
+    }
     @media (max-width: 900px) {
       .filters {
         grid-template-columns: 1fr;
@@ -157,8 +189,8 @@
   <main class="page">
     <header class="topbar">
       <div class="title-group">
-        <h1>Baram Workspace</h1>
-        <p>Code / Docs / Sheets をまとめて管理</p>
+        <h1>Baram</h1>
+        <p>ログイン不要で開始しましょう</p>
       </div>
       <div class="create-buttons" role="group" aria-label="create new">
         <button type="button" data-create="code">+ Code</button>
@@ -190,7 +222,7 @@
     </section>
 
     <section class="workspace">
-      <div class="summary">
+      <div class="summary" style="display:none">
         <span id="totalCount">0 items</span>
         <span id="codeCount">Code: 0</span>
         <span id="docsCount">Docs: 0</span>

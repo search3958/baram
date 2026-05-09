@@ -3,6 +3,12 @@
 
 <head>
   <meta charset="utf-8" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=LINE+Seed+JP:wght@400;700&display=swap" rel="stylesheet">
+<link href="base.css" rel="stylesheet">
+
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Baram Sheets</title>
   <style>
@@ -13,10 +19,12 @@
     body {
       margin: 0;
       min-height: 100vh;
+      overflow: hidden;
     }
 
     .page {
       min-height: 100vh;
+      height: 100vh;
       display: flex;
       flex-direction: column;
       gap: 10px;
@@ -35,6 +43,7 @@
       flex-wrap: wrap;
       align-items: center;
       gap: 8px;
+      flex: 0 0 auto;
     }
 
     .topbar {
@@ -73,6 +82,7 @@
     .workspace {
       flex: 1;
       min-height: 0;
+      height: 100%;
       display: grid;
       grid-template-columns: 1fr;
       gap: 10px;
@@ -108,15 +118,15 @@
 
     td,
     th {
-      min-width: 84px;
+      min-width: 80px;
       padding: 0;
       vertical-align: top;
     }
 
     th.row-header,
     th.corner {
-      min-width: 48px;
-      width: 48px;
+      min-width: 44px;
+      width: 44px;
     }
 
     th.row-header {
@@ -134,7 +144,39 @@
 
     td input {
       width: 100%;
-      min-height: 28px;
+      min-height: 26px;
+      line-height: 1.2;
+    }
+
+    td.selected-cell input,
+    td.active-cell input {
+      outline: 1px solid;
+    }
+
+    th.selected-header {
+      font-weight: 700;
+    }
+
+    .header-menu {
+      position: fixed;
+      z-index: 20;
+      min-width: 132px;
+      display: none;
+      flex-direction: column;
+      gap: 2px;
+      padding: 6px;
+      background: Canvas;
+      border: 1px solid;
+      box-shadow: 0 8px 24px rgb(0 0 0 / 18%);
+    }
+
+    .header-menu.open {
+      display: flex;
+    }
+
+    .header-menu button {
+      width: 100%;
+      text-align: left;
     }
 
     #csvSource {
@@ -173,13 +215,13 @@
 
       td,
       th {
-        min-width: 72px;
+        min-width: 70px;
       }
 
       th.row-header,
       th.corner {
-        min-width: 40px;
-        width: 40px;
+        min-width: 38px;
+        width: 38px;
       }
     }
   </style>
@@ -189,33 +231,31 @@
   <main class="page">
     <header class="topbar">
       <div class="left-controls">
-        <button type="button" id="backBtn">一覧へ戻る</button>
+        <button type="button" id="backBtn">
+          <img src="logo.png">
+        </button>
         <label class="field">
-          <span>Sheet Name</span>
           <input id="projectName" type="text" />
         </label>
       </div>
 
       <div class="right-controls">
-        <label class="field">
-          <span>File Name</span>
-          <input id="fileName" type="text" />
-        </label>
         <button type="button" id="downloadBtn">.csv ダウンロード</button>
       </div>
     </header>
 
     <section class="toolbar">
-      <div class="mode-switch" role="group" aria-label="sheet mode">
+      <div class="mode-switch" role="group" aria-label="sheet mode" style="display:none">
         <button type="button" id="tableModeBtn">Table</button>
         <button type="button" id="csvModeBtn">CSV</button>
       </div>
 
       <div class="sheet-actions">
-        <button type="button" id="addRowBtn">+ Row</button>
-        <button type="button" id="addColBtn">+ Col</button>
-        <button type="button" id="deleteRowBtn">- Row</button>
-        <button type="button" id="deleteColBtn">- Col</button>
+        <button type="button" id="undoBtn"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#000000"><path d="M280-200v-80h284q63 0 109.5-40T720-420q0-60-46.5-100T564-560H312l104 104-56 56-200-200 200-200 56 56-104 104h252q97 0 166.5 63T800-420q0 94-69.5 157T564-200H280Z"/></svg></button>
+        <button type="button" id="redoBtn"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#000000"><path d="M396-200q-97 0-166.5-63T160-420q0-94 69.5-157T396-640h252L544-744l56-56 200 200-200 200-56-56 104-104H396q-63 0-109.5 40T240-420q0 60 46.5 100T396-280h284v80H396Z"/></svg></button>
+        <button type="button" id="copyBtn"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#000000"><path d="M360-240q-33 0-56.5-23.5T280-320v-480q0-33 23.5-56.5T360-880h360q33 0 56.5 23.5T800-800v480q0 33-23.5 56.5T720-240H360Zm0-80h360v-480H360v480ZM200-80q-33 0-56.5-23.5T120-160v-560h80v560h440v80H200Zm160-240v-480 480Z"/></svg></button>
+        <button type="button" id="addRowBtn"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#000000"><path d="M200-120q-33 0-56.5-23.5T120-200v-160q0-33 23.5-56.5T200-440h560q33 0 56.5 23.5T840-360v160q0 33-23.5 56.5T760-120H200Zm0-400q-33 0-56.5-23.5T120-600v-160q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v160q0 33-23.5 56.5T760-520H200Zm560-240H200v160h560v-160Z"/></svg></button>
+        <button type="button" id="addColBtn"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#000000"><path d="M600-120q-33 0-56.5-23.5T520-200v-560q0-33 23.5-56.5T600-840h160q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H600Zm-400 0q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h160q33 0 56.5 23.5T440-760v560q0 33-23.5 56.5T360-120H200Zm0-640v560h160v-560H200Z"/></svg></button>
       </div>
 
       <label class="formula">
@@ -226,9 +266,10 @@
 
     <section class="workspace">
       <section class="table-pane" id="tablePane">
-        <div class="table-wrap">
+        <div class="table-wrap" id="tableWrap">
           <table id="sheetTable"></table>
         </div>
+        <div class="header-menu" id="headerMenu" role="menu"></div>
       </section>
 
       <section class="source-pane hidden" id="sourcePane">
@@ -245,28 +286,31 @@
   <script>
     const DB_KEY = "baram-sheets-v1";
     const DEFAULT_NAME = "Baram Sheet";
-    const DEFAULT_FILE_NAME = "sheet.csv";
     const DEFAULT_CONTENT = "name,value\nexample,1\n";
-
-    const MIN_ROWS = 50;
-    const MIN_COLS = 26;
+    const INITIAL_ROWS = 50;
+    const INITIAL_COLS = 26;
+    const SAVE_DEBOUNCE_MS = 2000;
+    const HISTORY_DEBOUNCE_MS = 500;
+    const HISTORY_LIMIT = 80;
 
     const params = new URLSearchParams(window.location.search);
 
     const backBtn = document.getElementById("backBtn");
     const projectNameInput = document.getElementById("projectName");
-    const fileNameInput = document.getElementById("fileName");
     const downloadBtn = document.getElementById("downloadBtn");
 
     const tableModeBtn = document.getElementById("tableModeBtn");
     const csvModeBtn = document.getElementById("csvModeBtn");
     const tablePane = document.getElementById("tablePane");
     const sourcePane = document.getElementById("sourcePane");
+    const tableWrap = document.getElementById("tableWrap");
+    const headerMenu = document.getElementById("headerMenu");
 
+    const undoBtn = document.getElementById("undoBtn");
+    const redoBtn = document.getElementById("redoBtn");
+    const copyBtn = document.getElementById("copyBtn");
     const addRowBtn = document.getElementById("addRowBtn");
     const addColBtn = document.getElementById("addColBtn");
-    const deleteRowBtn = document.getElementById("deleteRowBtn");
-    const deleteColBtn = document.getElementById("deleteColBtn");
 
     const formulaInput = document.getElementById("formulaInput");
     const sheetTable = document.getElementById("sheetTable");
@@ -275,10 +319,27 @@
     const statusText = document.getElementById("statusText");
     const sheetStats = document.getElementById("sheetStats");
 
+    let project = null;
     let mode = "table";
     let matrix = [];
     let activeCell = { row: 0, col: 0 };
-    let project = null;
+
+    let selection = { kind: "cells", r1: 0, r2: 0, c1: 0, c2: 0 };
+    let anchor = { kind: "cells", row: 0, col: 0 };
+
+    let cellInputs = [];
+    let rowHeaders = [];
+    let colHeaders = [];
+
+    let history = { stack: [], index: -1 };
+    let historyTimer = null;
+    let isApplyingHistory = false;
+
+    let saveTimer = null;
+    let saveQueued = false;
+    let saveRunning = false;
+    let dragSelection = null;
+    let suppressHeaderClick = false;
 
     function createId() {
       if (window.crypto && typeof window.crypto.randomUUID === "function") {
@@ -291,10 +352,17 @@
       return new Date().toISOString();
     }
 
-    function normalizeFileName(name) {
-      const value = (name || "").trim();
-      if (!value) return DEFAULT_FILE_NAME;
-      return value.toLowerCase().endsWith(".csv") ? value : `${value}.csv`;
+    function normalizeText(text) {
+      return String(text || "").replace(/\r\n?/g, "\n");
+    }
+
+    function sanitizeFileStem(name) {
+      const stem = String(name || "").trim().replace(/[\\/:*?"<>|]+/g, "-").replace(/\s+/g, " ");
+      return stem || DEFAULT_NAME;
+    }
+
+    function getDownloadFilename() {
+      return `${sanitizeFileStem(project.name || DEFAULT_NAME)}.csv`;
     }
 
     function createProject(name) {
@@ -302,7 +370,7 @@
       return {
         id: createId(),
         name: name || DEFAULT_NAME,
-        fileName: DEFAULT_FILE_NAME,
+        cells: createInitialMatrix(INITIAL_ROWS, INITIAL_COLS),
         content: DEFAULT_CONTENT,
         createdAt: now,
         updatedAt: now,
@@ -313,15 +381,9 @@
       try {
         const raw = localStorage.getItem(DB_KEY);
         const parsed = raw ? JSON.parse(raw) : null;
-        if (!parsed || typeof parsed !== "object") {
-          return { projects: {}, lastProjectId: null };
-        }
-        if (!parsed.projects || typeof parsed.projects !== "object") {
-          parsed.projects = {};
-        }
-        if (!Object.prototype.hasOwnProperty.call(parsed, "lastProjectId")) {
-          parsed.lastProjectId = null;
-        }
+        if (!parsed || typeof parsed !== "object") return { projects: {}, lastProjectId: null };
+        if (!parsed.projects || typeof parsed.projects !== "object") parsed.projects = {};
+        if (!Object.prototype.hasOwnProperty.call(parsed, "lastProjectId")) parsed.lastProjectId = null;
         return parsed;
       } catch (_error) {
         return { projects: {}, lastProjectId: null };
@@ -330,6 +392,43 @@
 
     function saveDb(db) {
       localStorage.setItem(DB_KEY, JSON.stringify(db));
+    }
+
+    function createInitialMatrix(rows, cols) {
+      return Array.from({ length: rows }, () => Array.from({ length: cols }, () => ""));
+    }
+
+    function cloneMatrix(input) {
+      return input.map((row) => row.slice());
+    }
+
+    function normalizeMatrix(rows) {
+      const normalized = (rows && rows.length)
+        ? rows.map((row) => Array.isArray(row) ? row.map((v) => String(v ?? "")) : [String(row ?? "")])
+        : [[""]];
+
+      const colCount = Math.max(1, normalized.reduce((max, row) => Math.max(max, row.length), 0));
+      normalized.forEach((row) => {
+        while (row.length < colCount) row.push("");
+      });
+      return normalized;
+    }
+
+    function trimMatrix(rows) {
+      let lastRow = -1;
+      let lastCol = -1;
+
+      for (let r = 0; r < rows.length; r += 1) {
+        for (let c = 0; c < rows[r].length; c += 1) {
+          if (String(rows[r][c] ?? "") !== "") {
+            if (r > lastRow) lastRow = r;
+            if (c > lastCol) lastCol = c;
+          }
+        }
+      }
+
+      if (lastRow < 0 || lastCol < 0) return [[""]];
+      return rows.slice(0, lastRow + 1).map((row) => row.slice(0, lastCol + 1));
     }
 
     function parseCsv(text) {
@@ -354,7 +453,6 @@
             }
             continue;
           }
-
           field += char;
           continue;
         }
@@ -390,29 +488,9 @@
       return rows;
     }
 
-    function matrixToCsvRows(rows) {
-      let lastRow = -1;
-      let lastCol = -1;
-
-      for (let r = 0; r < rows.length; r += 1) {
-        for (let c = 0; c < rows[r].length; c += 1) {
-          if (String(rows[r][c] ?? "") !== "") {
-            lastRow = Math.max(lastRow, r);
-            lastCol = Math.max(lastCol, c);
-          }
-        }
-      }
-
-      if (lastRow < 0 || lastCol < 0) {
-        return [[""]];
-      }
-
-      return rows.slice(0, lastRow + 1).map((row) => row.slice(0, lastCol + 1));
-    }
-
     function serializeCsv(rows) {
-      const rawRows = matrixToCsvRows(rows && rows.length ? rows : [[""]]);
-      return rawRows
+      const dataRows = trimMatrix(rows && rows.length ? rows : [[""]]);
+      return dataRows
         .map((row) => row.map((value) => {
           const str = String(value ?? "");
           if (/[",\n\r]/.test(str)) {
@@ -423,28 +501,131 @@
         .join("\r\n");
     }
 
-    function normalizeMatrix(rows, minRows = MIN_ROWS, minCols = MIN_COLS) {
-      const normalized = (rows && rows.length)
-        ? rows.map((row) => Array.isArray(row) ? [...row] : [String(row ?? "")])
-        : [[""]];
+    function updateStatus(message) {
+      statusText.textContent = message;
+    }
 
-      const rowCount = Math.max(normalized.length, minRows);
-      const colCount = Math.max(
-        normalized.reduce((max, row) => Math.max(max, row.length), 0),
-        minCols
-      );
+    function updateStats() {
+      const rows = matrix.length;
+      const cols = matrix[0] ? matrix[0].length : 0;
+      sheetStats.textContent = `Rows: ${rows} / Cols: ${cols}`;
+    }
 
-      while (normalized.length < rowCount) {
-        normalized.push([]);
+    function scheduleSave() {
+      updateStatus("Saving...");
+      if (saveTimer) window.clearTimeout(saveTimer);
+      saveTimer = window.setTimeout(queueIdleSave, SAVE_DEBOUNCE_MS);
+    }
+
+    function persistProjectNow() {
+      if (saveTimer) {
+        window.clearTimeout(saveTimer);
+        saveTimer = null;
+      }
+      if (mode === "csv") {
+        matrix = normalizeMatrix(parseCsv(csvSource.value));
+      }
+      project.cells = trimMatrix(matrix);
+      project.content = serializeCsv(matrix);
+      project.updatedAt = nowIso();
+      db.projects[project.id] = project;
+      db.lastProjectId = project.id;
+      saveDb(db);
+      updateStatus(`Saved: ${new Date(project.updatedAt).toLocaleTimeString("ja-JP")}`);
+    }
+
+    function queueIdleSave() {
+      if (saveRunning) {
+        saveQueued = true;
+        return;
       }
 
-      normalized.forEach((row) => {
-        while (row.length < colCount) {
-          row.push("");
+      const run = () => {
+        saveRunning = true;
+        try {
+          persistProjectNow();
+        } finally {
+          saveRunning = false;
+          if (saveQueued) {
+            saveQueued = false;
+            queueIdleSave();
+          }
         }
-      });
+      };
 
-      return normalized;
+      if (typeof window.requestIdleCallback === "function") {
+        window.requestIdleCallback(run, { timeout: 1200 });
+      } else {
+        window.setTimeout(run, 0);
+      }
+    }
+
+    function queueHistorySnapshot() {
+      if (isApplyingHistory) return;
+      if (historyTimer) window.clearTimeout(historyTimer);
+      historyTimer = window.setTimeout(() => {
+        pushHistorySnapshot();
+      }, HISTORY_DEBOUNCE_MS);
+    }
+
+    function pushHistorySnapshot(force = false) {
+      if (isApplyingHistory) return;
+      if (historyTimer) {
+        window.clearTimeout(historyTimer);
+        historyTimer = null;
+      }
+
+      const snapshot = cloneMatrix(matrix);
+      if (!force && history.index >= 0) {
+        const last = history.stack[history.index];
+        if (JSON.stringify(last) === JSON.stringify(snapshot)) {
+          updateUndoRedoButtons();
+          return;
+        }
+      }
+
+      if (history.index < history.stack.length - 1) {
+        history.stack = history.stack.slice(0, history.index + 1);
+      }
+      history.stack.push(snapshot);
+      if (history.stack.length > HISTORY_LIMIT) {
+        history.stack.shift();
+      }
+      history.index = history.stack.length - 1;
+      updateUndoRedoButtons();
+    }
+
+    function applyHistoryIndex(nextIndex) {
+      if (nextIndex < 0 || nextIndex >= history.stack.length) return;
+      isApplyingHistory = true;
+      history.index = nextIndex;
+      matrix = normalizeMatrix(cloneMatrix(history.stack[history.index]));
+      const maxRow = Math.max(0, matrix.length - 1);
+      const maxCol = Math.max(0, matrix[0].length - 1);
+      activeCell = { row: Math.min(activeCell.row, maxRow), col: Math.min(activeCell.col, maxCol) };
+      setCellSelection(activeCell.row, activeCell.col, false);
+      renderTable();
+      if (mode === "csv") {
+        csvSource.value = serializeCsv(matrix);
+      }
+      isApplyingHistory = false;
+      scheduleSave();
+      updateUndoRedoButtons();
+    }
+
+    function undo() {
+      if (history.index <= 0) return;
+      applyHistoryIndex(history.index - 1);
+    }
+
+    function redo() {
+      if (history.index >= history.stack.length - 1) return;
+      applyHistoryIndex(history.index + 1);
+    }
+
+    function updateUndoRedoButtons() {
+      undoBtn.disabled = history.index <= 0;
+      redoBtn.disabled = history.index >= history.stack.length - 1;
     }
 
     function columnLabel(index) {
@@ -458,189 +639,631 @@
       return label;
     }
 
-    function updateStatus(message) {
-      statusText.textContent = message;
+    function clampRow(row) {
+      return Math.max(0, Math.min(row, matrix.length - 1));
     }
 
-    function updateStats() {
+    function clampCol(col) {
+      return Math.max(0, Math.min(col, (matrix[0] ? matrix[0].length : 1) - 1));
+    }
+
+    function normalizeSelectionRect(sel) {
+      const r1 = clampRow(Math.min(sel.r1, sel.r2));
+      const r2 = clampRow(Math.max(sel.r1, sel.r2));
+      const c1 = clampCol(Math.min(sel.c1, sel.c2));
+      const c2 = clampCol(Math.max(sel.c1, sel.c2));
+      return { kind: sel.kind, r1, r2, c1, c2 };
+    }
+
+    function setSelection(kind, r1, r2, c1, c2, setAnchor = true) {
+      selection = normalizeSelectionRect({ kind, r1, r2, c1, c2 });
+      if (selection.kind === "rows") {
+        activeCell = { row: selection.r2, col: 0 };
+      } else if (selection.kind === "cols") {
+        activeCell = { row: 0, col: selection.c2 };
+      } else {
+        activeCell = { row: selection.r2, col: selection.c2 };
+      }
+      if (setAnchor) {
+        anchor = { kind, row: selection.r1, col: selection.c1 };
+      }
+      formulaInput.value = matrix[activeCell.row]?.[activeCell.col] ?? "";
+      applySelectionClasses();
+    }
+
+    function setCellSelection(row, col, extend) {
+      row = clampRow(row);
+      col = clampCol(col);
+      if (extend && anchor.kind === "cells") {
+        setSelection("cells", anchor.row, row, anchor.col, col, false);
+      } else {
+        setSelection("cells", row, row, col, col, true);
+      }
+      focusCell(activeCell.row, activeCell.col);
+    }
+
+    function setRowSelection(row, extend) {
+      row = clampRow(row);
+      const maxCol = clampCol(matrix[0].length - 1);
+      if (extend && anchor.kind === "rows") {
+        setSelection("rows", anchor.row, row, 0, maxCol, false);
+      } else {
+        setSelection("rows", row, row, 0, maxCol, true);
+      }
+    }
+
+    function setColSelection(col, extend) {
+      col = clampCol(col);
+      const maxRow = clampRow(matrix.length - 1);
+      if (extend && anchor.kind === "cols") {
+        setSelection("cols", 0, maxRow, anchor.col, col, false);
+      } else {
+        setSelection("cols", 0, maxRow, col, col, true);
+      }
+    }
+
+    function isCellInCurrentSelection(row, col) {
+      if (selection.kind === "rows") return row >= selection.r1 && row <= selection.r2;
+      if (selection.kind === "cols") return col >= selection.c1 && col <= selection.c2;
+      return row >= selection.r1 && row <= selection.r2 && col >= selection.c1 && col <= selection.c2;
+    }
+
+    function forEachSelectedCell(callback) {
+      for (let r = selection.r1; r <= selection.r2; r += 1) {
+        for (let c = selection.c1; c <= selection.c2; c += 1) {
+          callback(r, c);
+        }
+      }
+    }
+
+    function getSelectedRows() {
+      if (selection.kind === "rows") {
+        return { from: selection.r1, to: selection.r2 };
+      }
+      return { from: activeCell.row, to: activeCell.row };
+    }
+
+    function getSelectedCols() {
+      if (selection.kind === "cols") {
+        return { from: selection.c1, to: selection.c2 };
+      }
+      return { from: activeCell.col, to: activeCell.col };
+    }
+
+    function hideHeaderMenu() {
+      headerMenu.classList.remove("open");
+      headerMenu.innerHTML = "";
+    }
+
+    function positionHeaderMenu(event) {
+      const margin = 8;
+      headerMenu.style.left = `${Math.min(event.clientX, window.innerWidth - 160 - margin)}px`;
+      headerMenu.style.top = `${Math.min(event.clientY, window.innerHeight - 120 - margin)}px`;
+    }
+
+    function renderHeaderMenu(items, event) {
+      headerMenu.innerHTML = "";
+      items.forEach((item) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.textContent = item.label;
+        button.addEventListener("click", (buttonEvent) => {
+          buttonEvent.stopPropagation();
+          hideHeaderMenu();
+          item.action();
+        });
+        headerMenu.appendChild(button);
+      });
+      positionHeaderMenu(event);
+      headerMenu.classList.add("open");
+    }
+
+    function showRowMenu(event) {
+      const range = getSelectedRows();
+      renderHeaderMenu([
+        { label: "上に追加", action: () => insertRowsAt(range.from, range.to - range.from + 1) },
+        { label: "下に追加", action: () => insertRowsAt(range.to + 1, range.to - range.from + 1) },
+        { label: "削除", action: deleteSelectedRows },
+      ], event);
+    }
+
+    function showColMenu(event) {
+      const range = getSelectedCols();
+      renderHeaderMenu([
+        { label: "左に追加", action: () => insertColsAt(range.from, range.to - range.from + 1) },
+        { label: "右に追加", action: () => insertColsAt(range.to + 1, range.to - range.from + 1) },
+        { label: "削除", action: deleteSelectedCols },
+      ], event);
+    }
+
+    function applySelectionClasses() {
+      rowHeaders.forEach((th) => th.classList.remove("selected-header"));
+      colHeaders.forEach((th) => th.classList.remove("selected-header"));
+
+      cellInputs.forEach((row) => {
+        row.forEach((input) => {
+          if (!input) return;
+          const td = input.parentElement;
+          td.classList.remove("selected-cell", "active-cell");
+        });
+      });
+
+      forEachSelectedCell((r, c) => {
+        const input = cellInputs[r]?.[c];
+        if (!input) return;
+        input.parentElement.classList.add("selected-cell");
+      });
+
+      const activeInput = cellInputs[activeCell.row]?.[activeCell.col];
+      if (activeInput) {
+        activeInput.parentElement.classList.add("active-cell");
+      }
+
+      if (selection.kind === "rows") {
+        for (let r = selection.r1; r <= selection.r2; r += 1) {
+          const th = rowHeaders[r];
+          if (th) th.classList.add("selected-header");
+        }
+      }
+
+      if (selection.kind === "cols") {
+        for (let c = selection.c1; c <= selection.c2; c += 1) {
+          const th = colHeaders[c];
+          if (th) th.classList.add("selected-header");
+        }
+      }
+    }
+
+    function focusCell(row, col) {
+      const input = cellInputs[row]?.[col];
+      if (!input) return;
+      input.focus();
+      input.select();
+    }
+
+    function handleCellKeydown(event, row, col) {
+      const key = event.key;
+      const ctrlMeta = event.ctrlKey || event.metaKey;
+
+      if (ctrlMeta && !event.shiftKey && key.toLowerCase() === "z") {
+        event.preventDefault();
+        undo();
+        return;
+      }
+      if ((ctrlMeta && key.toLowerCase() === "y") || (ctrlMeta && event.shiftKey && key.toLowerCase() === "z")) {
+        event.preventDefault();
+        redo();
+        return;
+      }
+      if (ctrlMeta && key.toLowerCase() === "d") {
+        event.preventDefault();
+        duplicateSelectionDown();
+        return;
+      }
+      if (ctrlMeta && key.toLowerCase() === "c") {
+        event.preventDefault();
+        copySelection();
+        return;
+      }
+
+      if (key === "Delete" || key === "Backspace") {
+        if (selection.r1 !== selection.r2 || selection.c1 !== selection.c2 || selection.kind !== "cells") {
+          event.preventDefault();
+          clearSelectionValues();
+          return;
+        }
+      }
+
+      let nextRow = row;
+      let nextCol = col;
+      let handled = false;
+      let extend = event.shiftKey;
+
+      if (key === "ArrowUp") {
+        nextRow = clampRow(row - 1);
+        handled = true;
+      } else if (key === "ArrowDown") {
+        nextRow = clampRow(row + 1);
+        handled = true;
+      } else if (key === "ArrowLeft") {
+        nextCol = clampCol(col - 1);
+        handled = true;
+      } else if (key === "ArrowRight") {
+        nextCol = clampCol(col + 1);
+        handled = true;
+      } else if (key === "Enter") {
+        nextRow = clampRow(row + (event.shiftKey ? -1 : 1));
+        extend = false;
+        handled = true;
+      } else if (key === "Tab") {
+        nextCol = clampCol(col + (event.shiftKey ? -1 : 1));
+        extend = false;
+        handled = true;
+      }
+
+      if (!handled) return;
+      event.preventDefault();
+
+      if (extend) {
+        if (anchor.kind !== "cells") {
+          anchor = { kind: "cells", row, col };
+        }
+        setSelection("cells", anchor.row, nextRow, anchor.col, nextCol, false);
+      } else {
+        setSelection("cells", nextRow, nextRow, nextCol, nextCol, true);
+      }
+    }
+
+    function duplicateSelectionDown() {
+      if (!matrix.length || !matrix[0]) return;
+      if (selection.r2 <= selection.r1) return;
+
+      const sourceRow = selection.r1;
+      for (let r = selection.r1 + 1; r <= selection.r2; r += 1) {
+        for (let c = selection.c1; c <= selection.c2; c += 1) {
+          matrix[r][c] = matrix[sourceRow][c];
+          const input = cellInputs[r]?.[c];
+          if (input) input.value = matrix[r][c];
+        }
+      }
+
+      queueHistorySnapshot();
+      scheduleSave();
+    }
+
+    function clearSelectionValues() {
+      forEachSelectedCell((r, c) => {
+        matrix[r][c] = "";
+        const input = cellInputs[r]?.[c];
+        if (input) input.value = "";
+      });
+      formulaInput.value = matrix[activeCell.row]?.[activeCell.col] ?? "";
+      queueHistorySnapshot();
+      scheduleSave();
+    }
+
+    function selectionToTSV() {
+      const rows = [];
+      for (let r = selection.r1; r <= selection.r2; r += 1) {
+        const cols = [];
+        for (let c = selection.c1; c <= selection.c2; c += 1) {
+          cols.push(matrix[r][c] ?? "");
+        }
+        rows.push(cols.join("\t"));
+      }
+      return rows.join("\n");
+    }
+
+    async function copySelection() {
+      const tsv = selectionToTSV();
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(tsv);
+        } else {
+          throw new Error("clipboard api unavailable");
+        }
+      } catch (_error) {
+        const ta = document.createElement("textarea");
+        ta.value = tsv;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        ta.remove();
+      }
+      updateStatus("Copied");
+    }
+
+    function parseTsv(text) {
+      const normalized = normalizeText(text);
+      const lines = normalized.split("\n");
+      if (lines.length && lines[lines.length - 1] === "") lines.pop();
+      return lines.map((line) => line.split("\t"));
+    }
+
+    function ensureMatrixSize(minRows, minCols) {
       const rows = matrix.length;
       const cols = matrix[0] ? matrix[0].length : 0;
-      sheetStats.textContent = `Rows: ${rows} / Cols: ${cols}`;
-    }
-
-    function syncSourceIfNeeded() {
-      if (mode === "csv") {
-        csvSource.value = serializeCsv(matrix);
+      while (matrix.length < minRows) {
+        matrix.push(Array.from({ length: Math.max(cols, minCols, 1) }, () => ""));
       }
+      const targetCols = Math.max(cols, minCols, 1);
+      matrix.forEach((row) => {
+        while (row.length < targetCols) row.push("");
+      });
     }
 
-    function saveProject() {
-      project.content = serializeCsv(matrix);
-      project.updatedAt = nowIso();
-      db.projects[project.id] = project;
-      db.lastProjectId = project.id;
-      saveDb(db);
-      updateStatus(`Saved: ${new Date(project.updatedAt).toLocaleTimeString("ja-JP")}`);
-    }
+    function pasteAtSelection(text) {
+      const rows = parseTsv(text);
+      if (!rows.length) return;
 
-    function scheduleSave() {
-      updateStatus("Saving...");
-      if (scheduleSave.timer) window.clearTimeout(scheduleSave.timer);
-      scheduleSave.timer = window.setTimeout(saveProject, 220);
-    }
+      const startRow = selection.r1;
+      const startCol = selection.c1;
+      const pasteRows = rows.length;
+      const pasteCols = rows.reduce((max, row) => Math.max(max, row.length), 0);
 
-    function ensureMatrixFromCurrentMode() {
-      if (mode === "csv") {
-        matrix = normalizeMatrix(parseCsv(csvSource.value));
+      ensureMatrixSize(startRow + pasteRows, startCol + pasteCols);
+
+      for (let r = 0; r < pasteRows; r += 1) {
+        for (let c = 0; c < pasteCols; c += 1) {
+          matrix[startRow + r][startCol + c] = rows[r][c] ?? "";
+        }
       }
+
+      setSelection("cells", startRow, startRow + pasteRows - 1, startCol, startCol + pasteCols - 1, true);
+      renderTable();
+      queueHistorySnapshot();
+      scheduleSave();
     }
 
-    function setMode(nextMode) {
-      mode = nextMode;
-      const isTable = mode === "table";
+    function insertRowsAt(index, count = 1) {
+      const cols = matrix[0] ? matrix[0].length : INITIAL_COLS;
+      const safeIndex = Math.max(0, Math.min(index, matrix.length));
+      const nextRows = Array.from({ length: Math.max(1, count) }, () => Array.from({ length: Math.max(cols, 1) }, () => ""));
+      matrix.splice(safeIndex, 0, ...nextRows);
+      renderTable();
+      setRowSelection(safeIndex, false);
+      queueHistorySnapshot();
+      scheduleSave();
+    }
 
-      tableModeBtn.disabled = isTable;
-      csvModeBtn.disabled = !isTable;
-      tablePane.classList.toggle("hidden", !isTable);
-      sourcePane.classList.toggle("hidden", isTable);
+    function insertColsAt(index, count = 1) {
+      if (!matrix.length) matrix = [[""]];
+      const safeIndex = Math.max(0, Math.min(index, matrix[0].length));
+      matrix.forEach((row) => {
+        row.splice(safeIndex, 0, ...Array.from({ length: Math.max(1, count) }, () => ""));
+      });
+      renderTable();
+      setColSelection(safeIndex, false);
+      queueHistorySnapshot();
+      scheduleSave();
+    }
 
-      if (isTable) {
-        matrix = normalizeMatrix(parseCsv(csvSource.value));
-        renderTable();
-      } else {
-        csvSource.value = serializeCsv(matrix);
+    function deleteSelectedRows() {
+      const range = getSelectedRows();
+      const count = range.to - range.from + 1;
+      const ok = window.confirm(`Row ${range.from + 1} - ${range.to + 1} を削除しますか？`);
+      if (!ok) return;
+
+      matrix.splice(range.from, count);
+      if (!matrix.length) {
+        matrix = [[""]];
       }
+
+      activeCell.row = clampRow(Math.min(range.from, matrix.length - 1));
+      activeCell.col = clampCol(activeCell.col);
+      setCellSelection(activeCell.row, activeCell.col, false);
+      renderTable();
+      queueHistorySnapshot();
+      scheduleSave();
     }
 
-    function setActiveCell(row, col) {
-      activeCell = { row, col };
-      formulaInput.value = matrix[row]?.[col] ?? "";
+    function deleteSelectedCols() {
+      const range = getSelectedCols();
+      const count = range.to - range.from + 1;
+      const colNameFrom = columnLabel(range.from);
+      const colNameTo = columnLabel(range.to);
+      const ok = window.confirm(`Column ${colNameFrom} - ${colNameTo} を削除しますか？`);
+      if (!ok) return;
+
+      matrix.forEach((row) => {
+        row.splice(range.from, count);
+        if (!row.length) row.push("");
+      });
+
+      activeCell.col = clampCol(Math.min(range.from, (matrix[0] ? matrix[0].length : 1) - 1));
+      activeCell.row = clampRow(activeCell.row);
+      setCellSelection(activeCell.row, activeCell.col, false);
+      renderTable();
+      queueHistorySnapshot();
+      scheduleSave();
     }
 
-    function refreshActionAvailability() {
-      deleteRowBtn.disabled = matrix.length <= MIN_ROWS;
-      deleteColBtn.disabled = (matrix[0] ? matrix[0].length : 0) <= MIN_COLS;
+    function addRow() {
+      const cols = matrix[0] ? matrix[0].length : INITIAL_COLS;
+      matrix.push(Array.from({ length: Math.max(cols, 1) }, () => ""));
+      renderTable();
+      setCellSelection(matrix.length - 1, 0, false);
+      queueHistorySnapshot();
+      scheduleSave();
+    }
+
+    function addCol() {
+      if (!matrix.length) matrix = [[""]];
+      matrix.forEach((row) => row.push(""));
+      renderTable();
+      setCellSelection(0, matrix[0].length - 1, false);
+      queueHistorySnapshot();
+      scheduleSave();
     }
 
     function renderTable() {
       matrix = normalizeMatrix(matrix);
       sheetTable.innerHTML = "";
+      cellInputs = [];
+      rowHeaders = [];
+      colHeaders = [];
 
-      const cols = matrix[0].length;
+      const rowCount = matrix.length;
+      const colCount = matrix[0].length;
+
       const thead = document.createElement("thead");
       const headRow = document.createElement("tr");
 
       const corner = document.createElement("th");
       corner.className = "corner";
       corner.textContent = "#";
+      corner.addEventListener("click", (event) => {
+        hideHeaderMenu();
+        const extend = event.shiftKey && anchor.kind === "cells";
+        if (extend) {
+          setSelection("cells", anchor.row, rowCount - 1, anchor.col, colCount - 1, false);
+        } else {
+          setSelection("cells", 0, rowCount - 1, 0, colCount - 1, true);
+          anchor = { kind: "cells", row: 0, col: 0 };
+        }
+      });
       headRow.appendChild(corner);
 
-      for (let col = 0; col < cols; col += 1) {
+      for (let col = 0; col < colCount; col += 1) {
         const th = document.createElement("th");
         th.textContent = columnLabel(col);
+        th.dataset.col = String(col);
+        th.addEventListener("mousedown", (event) => {
+          if (event.button !== 0) return;
+          dragSelection = { kind: "cols", col };
+        });
+        th.addEventListener("mouseenter", (event) => {
+          if (!dragSelection || dragSelection.kind !== "cols" || event.buttons !== 1) return;
+          dragSelection.moved = true;
+          setSelection("cols", 0, rowCount - 1, dragSelection.col, col, false);
+        });
+        th.addEventListener("click", (event) => {
+          if (suppressHeaderClick) return;
+          setColSelection(col, event.shiftKey);
+          showColMenu(event);
+        });
         headRow.appendChild(th);
+        colHeaders.push(th);
       }
 
       thead.appendChild(headRow);
       sheetTable.appendChild(thead);
 
       const tbody = document.createElement("tbody");
-      matrix.forEach((rowData, rowIndex) => {
+      for (let row = 0; row < rowCount; row += 1) {
         const tr = document.createElement("tr");
 
         const rowHeader = document.createElement("th");
         rowHeader.className = "row-header";
-        rowHeader.textContent = String(rowIndex + 1);
+        rowHeader.textContent = String(row + 1);
+        rowHeader.dataset.row = String(row);
+        rowHeader.addEventListener("mousedown", (event) => {
+          if (event.button !== 0) return;
+          dragSelection = { kind: "rows", row };
+        });
+        rowHeader.addEventListener("mouseenter", (event) => {
+          if (!dragSelection || dragSelection.kind !== "rows" || event.buttons !== 1) return;
+          dragSelection.moved = true;
+          setSelection("rows", dragSelection.row, row, 0, colCount - 1, false);
+        });
+        rowHeader.addEventListener("click", (event) => {
+          if (suppressHeaderClick) return;
+          setRowSelection(row, event.shiftKey);
+          showRowMenu(event);
+        });
         tr.appendChild(rowHeader);
+        rowHeaders.push(rowHeader);
 
-        rowData.forEach((cellValue, colIndex) => {
+        const inputRow = [];
+        for (let col = 0; col < colCount; col += 1) {
           const td = document.createElement("td");
           const input = document.createElement("input");
           input.type = "text";
-          input.value = cellValue ?? "";
-          input.dataset.row = String(rowIndex);
-          input.dataset.col = String(colIndex);
+          input.value = matrix[row][col] ?? "";
+          input.dataset.row = String(row);
+          input.dataset.col = String(col);
+
+          input.addEventListener("mousedown", (event) => {
+            if (event.button !== 0) return;
+            hideHeaderMenu();
+            dragSelection = { kind: "cells", row, col };
+            if (event.shiftKey) {
+              if (anchor.kind !== "cells") {
+                anchor = { kind: "cells", row: activeCell.row, col: activeCell.col };
+              }
+              setSelection("cells", anchor.row, row, anchor.col, col, false);
+            } else {
+              setSelection("cells", row, row, col, col, true);
+            }
+          });
+
+          input.addEventListener("mouseenter", (event) => {
+            if (!dragSelection || dragSelection.kind !== "cells" || event.buttons !== 1) return;
+            dragSelection.moved = true;
+            setSelection("cells", dragSelection.row, row, dragSelection.col, col, false);
+          });
 
           input.addEventListener("focus", () => {
-            setActiveCell(rowIndex, colIndex);
+            if (!isCellInCurrentSelection(row, col)) {
+              setSelection("cells", row, row, col, col, true);
+            }
           });
 
           input.addEventListener("input", () => {
-            matrix[rowIndex][colIndex] = input.value;
-            if (activeCell.row === rowIndex && activeCell.col === colIndex) {
+            matrix[row][col] = input.value;
+            if (activeCell.row === row && activeCell.col === col) {
               formulaInput.value = input.value;
             }
-            updateStats();
-            syncSourceIfNeeded();
+            queueHistorySnapshot();
             scheduleSave();
+          });
+
+          input.addEventListener("keydown", (event) => {
+            handleCellKeydown(event, row, col);
           });
 
           td.appendChild(input);
           tr.appendChild(td);
-        });
+          inputRow.push(input);
+        }
 
+        cellInputs.push(inputRow);
         tbody.appendChild(tr);
-      });
+      }
 
       sheetTable.appendChild(tbody);
       updateStats();
-      refreshActionAvailability();
-
-      const maxRow = Math.max(0, matrix.length - 1);
-      const maxCol = Math.max(0, matrix[0].length - 1);
-      activeCell.row = Math.min(activeCell.row, maxRow);
-      activeCell.col = Math.min(activeCell.col, maxCol);
-      formulaInput.value = matrix[activeCell.row][activeCell.col] ?? "";
+      applySelectionClasses();
+      updateUndoRedoButtons();
+      if (mode === "csv") {
+        csvSource.value = serializeCsv(matrix);
+      }
     }
 
-    function addRow() {
-      ensureMatrixFromCurrentMode();
-      const cols = matrix[0] ? matrix[0].length : MIN_COLS;
-      matrix.push(Array.from({ length: cols }, () => ""));
-      activeCell.row = matrix.length - 1;
-      activeCell.col = Math.min(activeCell.col, cols - 1);
-      renderTable();
-      syncSourceIfNeeded();
-      scheduleSave();
+    function setMode(nextMode) {
+      const previousMode = mode;
+      mode = nextMode;
+      const isTable = mode === "table";
+      tableModeBtn.disabled = isTable;
+      csvModeBtn.disabled = !isTable;
+      tablePane.classList.toggle("hidden", !isTable);
+      sourcePane.classList.toggle("hidden", isTable);
+
+      if (isTable && previousMode === "csv") {
+        matrix = normalizeMatrix(parseCsv(csvSource.value));
+        if (!matrix.length || (matrix.length === 1 && matrix[0].length === 1 && matrix[0][0] === "")) {
+          matrix = createInitialMatrix(INITIAL_ROWS, INITIAL_COLS);
+        }
+        setCellSelection(0, 0, false);
+        renderTable();
+      } else if (!isTable) {
+        csvSource.value = serializeCsv(matrix);
+      }
     }
 
-    function addCol() {
-      ensureMatrixFromCurrentMode();
-      matrix.forEach((row) => row.push(""));
-      activeCell.col = matrix[0].length - 1;
-      renderTable();
-      syncSourceIfNeeded();
-      scheduleSave();
+    function copyToClipboardByShortcut(event) {
+      if (event.defaultPrevented) return;
+      const ctrlMeta = event.ctrlKey || event.metaKey;
+      if (!ctrlMeta || event.key.toLowerCase() !== "c") return;
+      event.preventDefault();
+      copySelection();
     }
 
-    function deleteRow() {
-      ensureMatrixFromCurrentMode();
-      if (matrix.length <= MIN_ROWS) return;
-      const rowNo = activeCell.row + 1;
-      const ok = window.confirm(`Row ${rowNo} を削除しますか？`);
-      if (!ok) return;
+    function handlePaste(event) {
+      if (event.defaultPrevented) return;
+      const text = (event.clipboardData || window.clipboardData)?.getData("text/plain");
+      if (!text) return;
 
-      matrix.splice(activeCell.row, 1);
-      activeCell.row = Math.max(0, activeCell.row - 1);
-      renderTable();
-      syncSourceIfNeeded();
-      scheduleSave();
-    }
+      const target = event.target;
+      const inSheet = target === formulaInput || target === csvSource || tableWrap.contains(target);
+      if (!inSheet) return;
 
-    function deleteCol() {
-      ensureMatrixFromCurrentMode();
-      const colCount = matrix[0] ? matrix[0].length : 0;
-      if (colCount <= MIN_COLS) return;
+      if (mode === "csv" && target === csvSource) {
+        return;
+      }
 
-      const colName = columnLabel(activeCell.col);
-      const ok = window.confirm(`Column ${colName} を削除しますか？`);
-      if (!ok) return;
-
-      matrix.forEach((row) => row.splice(activeCell.col, 1));
-      activeCell.col = Math.max(0, activeCell.col - 1);
-      renderTable();
-      syncSourceIfNeeded();
-      scheduleSave();
+      event.preventDefault();
+      pasteAtSelection(text);
     }
 
     function downloadTextFile(filename, content, mimeType) {
@@ -675,15 +1298,23 @@
     }
 
     projectNameInput.value = project.name || DEFAULT_NAME;
-    fileNameInput.value = project.fileName || DEFAULT_FILE_NAME;
     document.title = `${projectNameInput.value} | Baram Sheets`;
 
-    matrix = normalizeMatrix(parseCsv(project.content || DEFAULT_CONTENT));
-    csvSource.value = serializeCsv(matrix);
+    if (Array.isArray(project.cells) && project.cells.length) {
+      matrix = normalizeMatrix(cloneMatrix(project.cells));
+    } else {
+      const parsed = normalizeMatrix(parseCsv(project.content || DEFAULT_CONTENT));
+      const isMinimal = parsed.length === 1 && parsed[0].length === 1 && parsed[0][0] === "";
+      matrix = isMinimal ? createInitialMatrix(INITIAL_ROWS, INITIAL_COLS) : parsed;
+    }
+
+    setCellSelection(0, 0, false);
     renderTable();
+    pushHistorySnapshot(true);
     setMode("table");
 
     backBtn.addEventListener("click", () => {
+      persistProjectNow();
       window.location.href = "../index-new.html";
     });
 
@@ -693,17 +1324,9 @@
       scheduleSave();
     });
 
-    fileNameInput.addEventListener("input", () => {
-      project.fileName = normalizeFileName(fileNameInput.value);
-      scheduleSave();
-    });
-
-    fileNameInput.addEventListener("blur", () => {
-      fileNameInput.value = normalizeFileName(fileNameInput.value);
-    });
-
     tableModeBtn.addEventListener("click", () => {
       setMode("table");
+      queueHistorySnapshot();
       scheduleSave();
     });
 
@@ -714,43 +1337,88 @@
 
     csvSource.addEventListener("input", () => {
       if (mode !== "csv") return;
-      matrix = normalizeMatrix(parseCsv(csvSource.value));
-      updateStats();
-      refreshActionAvailability();
-      scheduleSave();
+      if (csvSource.timer) window.clearTimeout(csvSource.timer);
+      csvSource.timer = window.setTimeout(() => {
+        matrix = normalizeMatrix(parseCsv(csvSource.value));
+        if (!matrix.length) matrix = [[""]];
+        setCellSelection(0, 0, false);
+        renderTable();
+        queueHistorySnapshot();
+        scheduleSave();
+      }, 350);
     });
+
+    undoBtn.addEventListener("click", undo);
+    redoBtn.addEventListener("click", redo);
+    copyBtn.addEventListener("click", copySelection);
 
     addRowBtn.addEventListener("click", addRow);
     addColBtn.addEventListener("click", addCol);
-    deleteRowBtn.addEventListener("click", deleteRow);
-    deleteColBtn.addEventListener("click", deleteCol);
 
     formulaInput.addEventListener("input", () => {
-      if (!matrix[activeCell.row] || matrix[activeCell.row][activeCell.col] === undefined) return;
       matrix[activeCell.row][activeCell.col] = formulaInput.value;
-
-      if (mode === "table") {
-        const selector = `input[data-row="${activeCell.row}"][data-col="${activeCell.col}"]`;
-        const cellInput = sheetTable.querySelector(selector);
-        if (cellInput) cellInput.value = formulaInput.value;
-      }
-
-      syncSourceIfNeeded();
-      updateStats();
+      const input = cellInputs[activeCell.row]?.[activeCell.col];
+      if (input) input.value = formulaInput.value;
+      queueHistorySnapshot();
       scheduleSave();
     });
 
-    downloadBtn.addEventListener("click", () => {
-      ensureMatrixFromCurrentMode();
-      const filename = normalizeFileName(project.fileName || fileNameInput.value);
-      project.fileName = filename;
-      fileNameInput.value = filename;
+    document.addEventListener("keydown", (event) => {
+      const ctrlMeta = event.ctrlKey || event.metaKey;
+      if (!ctrlMeta) return;
 
+      if (!event.shiftKey && event.key.toLowerCase() === "z") {
+        event.preventDefault();
+        undo();
+        return;
+      }
+
+      if (event.key.toLowerCase() === "y" || (event.shiftKey && event.key.toLowerCase() === "z")) {
+        event.preventDefault();
+        redo();
+      }
+    });
+
+    document.addEventListener("keydown", copyToClipboardByShortcut);
+    document.addEventListener("paste", handlePaste);
+    document.addEventListener("mouseup", () => {
+      if (dragSelection?.moved && (dragSelection.kind === "rows" || dragSelection.kind === "cols")) {
+        suppressHeaderClick = true;
+        window.setTimeout(() => {
+          suppressHeaderClick = false;
+        }, 0);
+      }
+      dragSelection = null;
+    });
+    document.addEventListener("click", (event) => {
+      const target = event.target;
+      const header = target && typeof target.closest === "function" ? target.closest("th") : null;
+      if (!headerMenu.contains(target) && !header) {
+        hideHeaderMenu();
+      }
+    });
+    headerMenu.addEventListener("click", (event) => {
+      event.stopPropagation();
+    });
+
+    downloadBtn.addEventListener("click", () => {
+      if (mode === "csv") {
+        matrix = normalizeMatrix(parseCsv(csvSource.value));
+      }
       const csv = serializeCsv(matrix);
       project.content = csv;
-      csvSource.value = csv;
-      scheduleSave();
-      downloadTextFile(filename, csv, "text/csv;charset=utf-8");
+      persistProjectNow();
+      downloadTextFile(getDownloadFilename(), csv, "text/csv;charset=utf-8");
+    });
+
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "hidden") {
+        persistProjectNow();
+      }
+    });
+
+    window.addEventListener("beforeunload", () => {
+      persistProjectNow();
     });
 
     updateStatus("Ready");
